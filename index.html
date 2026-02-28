@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IEP Decision Engine — Full Version | Neurodivergent Uprising</title>
+<meta name="description" content="Complete IEP meeting prep system. 4 modules: Child Snapshot, Evaluation Clarifier, Rights & Leverage, and Meeting Packet generator.">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #FAFAF8; font-family: 'Source Serif 4', Georgia, serif; -webkit-font-smoothing: antialiased; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef } = React;
+
+// ============================================================
+// IEP DECISION ENGINE — COMPLETE (Welcome + Modules 1-4 + Glossary + Email Gate)
+// Neurodivergent Uprising
+// ============================================================
+
+const FONT = "'Source Serif 4', Georgia, serif";
+const P = {
+  bg: "#FAFAF8", surface: "#FFFFFF", text: "#1A1A1A", textMuted: "#6B6B6B",
+  accent: "#2E4057", accentLight: "#E8EDF2", accentWarm: "#C4553A", warmLight: "#FEF3F0",
+  border: "#E5E5E3", success: "#2D7A4F", successLight: "#EDF7F0",
+  high: "#B91C1C", highBg: "#FEF2F2", medium: "#B45309", mediumBg: "#FFFBEB",
+};
+
+// ============================================================
+// GLOSSARY DATA
+// ============================================================
+const GLOSSARY = [
+  { term: "IEP", full: "Individualized Education Program", def: "A legally binding document that spells out exactly what services, supports, goals, and accommodations the school must provide your child. It's not a suggestion — it's a contract." },
+  { term: "504 Plan", full: "Section 504 Accommodation Plan", def: "A plan that gives your child accommodations (like extra time or preferential seating) but doesn't include specialized instruction or measurable goals. Less protection than an IEP, but easier to get." },
+  { term: "IDEA", full: "Individuals with Disabilities Education Act", def: "The federal law that guarantees your child's right to a free, appropriate public education with the supports they need. This is where all IEP rights come from." },
+  { term: "FAPE", full: "Free Appropriate Public Education", def: "Your child's legal right to an education that actually works for them — not just a desk in a room, but meaningful access and progress. 'Appropriate' is the word schools fight over most." },
+  { term: "LRE", full: "Least Restrictive Environment", def: "The law says your child should be educated alongside non-disabled peers to the maximum extent appropriate, with supports. The school has to try supports in general education before pulling your child out." },
+  { term: "PWN", full: "Prior Written Notice", def: "When the school says no to something you asked for (or changes something without you asking), they have to tell you in writing: what they refused, why, and what data they used. If they won't put it in writing, ask. This is your paper trail." },
+  { term: "FBA", full: "Functional Behavior Assessment", def: "An assessment that figures out WHY your child is doing a behavior — what triggers it, what need it meets. The school can't just say 'it's a behavior problem' without understanding the function." },
+  { term: "BIP", full: "Behavior Intervention Plan", def: "A plan that addresses the 'why' from the FBA with specific strategies, replacement behaviors, and supports. It should prevent problems, not just punish them." },
+  { term: "IEE", full: "Independent Educational Evaluation", def: "If you disagree with the school's evaluation, you can request an outside evaluation at the district's expense. The school has to either pay for it or file to prove their evaluation was adequate." },
+  { term: "Manifestation Determination", full: "Manifestation Determination Review (MDR)", def: "When your child faces serious discipline (10+ days suspension), the team must decide: was the behavior caused by or related to their disability? If yes, the school can't just suspend them — they have to address the underlying need." },
+  { term: "Eligibility", full: "Special Education Eligibility", def: "The process of deciding whether your child qualifies for special education services. A diagnosis alone doesn't guarantee eligibility — the school looks at whether the disability impacts educational performance." },
+  { term: "Present Levels", full: "Present Levels of Performance (PLOP)", def: "The section of the IEP that describes where your child is RIGHT NOW — what they can do, what they struggle with, and how the disability impacts school. Everything else in the IEP should flow from this." },
+  { term: "Related Services", full: "Related Services", def: "Extra supports your child needs to benefit from their education: speech therapy, occupational therapy, counseling, transportation, assistive technology. These are part of FAPE if the team determines need." },
+  { term: "Accommodations", full: "Accommodations vs. Modifications", def: "Accommodations change HOW your child learns (extra time, quiet space, audiobooks). Modifications change WHAT they learn (simplified content, fewer problems). Both can be in an IEP." },
+  { term: "RTI / MTSS", full: "Response to Intervention / Multi-Tiered System of Supports", def: "A framework schools use to provide increasing levels of support. Important: the school CANNOT use RTI to delay an evaluation if you've made a written request." },
+  { term: "Consent", full: "Parental Consent", def: "The school needs your written permission before they evaluate your child or start services. You can give consent for evaluation without agreeing to whatever they find. You can also revoke consent for services." },
+  { term: "Stay-Put", full: "Stay-Put / Pendency", def: "If you formally dispute a change to your child's placement or services, the child stays in their current placement until the dispute is resolved. This is a powerful protection against sudden changes." },
+  { term: "Due Process", full: "Due Process Hearing", def: "A formal legal proceeding — like a trial — where a hearing officer decides a dispute between you and the school. It's the most serious step, but knowing it exists gives your other requests weight." },
+  { term: "Mediation", full: "Mediation", def: "A voluntary meeting with a neutral mediator to try to resolve disputes before due process. It's less adversarial, less expensive, and often effective. Both sides have to agree to it." },
+  { term: "State Complaint", full: "State Complaint", def: "A written complaint to your state department of education alleging the school violated IDEA. The state must investigate and respond within 60 days. This is free and you don't need a lawyer." },
+];
+
+// ============================================================
+// DATA: Domain Maps, Flags, Questions, Rights, Scripts
+// ============================================================
+const NEED_DOMAIN_MAP = {
+  "Reading": { READ: 2 }, "Writing": { WRIT: 2 }, "Math": { MATH: 2 },
+  "Attention/Impulsivity": { EF: 2, BEH: 1 }, "Emotional Regulation": { EMO: 2, BEH: 1 },
+  "Behavior": { BEH: 2 }, "Social Communication": { SOC: 2 }, "Executive Function": { EF: 2 },
+  "Sensory": { SENS: 2 }, "Speech/Language": { SL: 2 }, "Motor/OT": { SENS: 2 },
+  "Attendance/Avoidance": { ATT: 2, EMO: 1 },
+};
+const DX_DOMAIN_MAP = {
+  "ADHD": { EF: 2, BEH: 1 }, "Autism": { SOC: 2, SENS: 1, SL: 1 }, "Dyslexia": { READ: 3 },
+  "Dysgraphia": { WRIT: 3 }, "Dyscalculia": { MATH: 3 }, "Anxiety": { EMO: 2, ATT: 1 },
+  "Language Disorder": { SL: 3, READ: 1 }, "Trauma": { EMO: 2, BEH: 1, ATT: 1 }, "ODD": { BEH: 2 },
+};
+const DOMAIN_LABELS = {
+  READ: "Reading", WRIT: "Writing", MATH: "Math", EF: "Executive Function",
+  BEH: "Behavior / Discipline Risk", EMO: "Emotional Regulation", SOC: "Social Communication",
+  SENS: "Sensory / OT / Motor", SL: "Speech / Language", ATT: "Attendance / Avoidance",
+};
+
+const RED_FLAG_RULES = [
+  { id: "eval_scope", title: "Evaluation Scope Risk", check: d => d.diagnosis.includes("Not sure / None yet") && d.suspectedNeeds.length >= 3, card: "Multiple suspected needs with unclear diagnosis — ensure assessments cover all domains.", severity: "High" },
+  { id: "discipline_risk", title: "Discipline Exposure Risk", check: d => d.suspectedNeeds.includes("Behavior") || ["Suspension/Restraint","Calls home","Police/SRO involvement"].some(u => d.urgentMarkers.includes(u)), card: "Behavior concerns or discipline history — ask about FBA/BIP and manifestation protections.", severity: "High" },
+  { id: "support_gap", title: "Support Gap Detected", check: d => d.currentServices.includes("None/Unknown") && d.suspectedNeeds.length >= 2, card: "Significant concerns with no services — request interim supports while evaluation proceeds.", severity: "High" },
+  { id: "attendance_barrier", title: "Attendance Barrier Risk", check: d => d.suspectedNeeds.includes("Attendance/Avoidance") || d.urgentMarkers.includes("Refusal/School avoidance"), card: "Attendance concerns — demand root cause analysis and barrier-removal plan.", severity: "Medium" },
+  { id: "literacy_gap", title: "Literacy Evaluation Gap", check: d => (d.suspectedNeeds.includes("Reading") || d.suspectedNeeds.includes("Writing")) && (d.diagnosis.includes("Dyslexia") || d.diagnosis.includes("Dysgraphia")), card: "Literacy disability suspected — ask about comprehensive literacy evaluation.", severity: "High" },
+  { id: "autism_profile", title: "Autism Profile Gap", check: d => d.diagnosis.includes("Autism") && (d.suspectedNeeds.includes("Social Communication") || d.suspectedNeeds.includes("Sensory")), card: "Autism + social/sensory concerns — ask about social communication and sensory profile assessment.", severity: "High" },
+  { id: "ef_invisible", title: "EF Underserved", check: d => d.diagnosis.includes("ADHD") && d.suspectedNeeds.includes("Executive Function") && !d.currentServices.includes("Counseling"), card: "ADHD + EF concerns but no EF support — ask about EF goals and accommodations.", severity: "Medium" },
+  { id: "self_harm_risk", title: "Safety Concern", check: d => d.urgentMarkers.includes("Threats of self-harm"), card: "Safety concern — ensure the school has a documented safety plan.", severity: "High" },
+  { id: "restraint", title: "Restraint/Seclusion", check: d => d.urgentMarkers.includes("Suspension/Restraint") || d.urgentMarkers.includes("Seclusion"), card: "Restraint/seclusion reported — request documentation and review BIP.", severity: "High" },
+  { id: "bullying", title: "Bullying Risk", check: d => d.urgentMarkers.includes("Bullying"), card: "Bullying reported — ensure peer safety supports are in the IEP.", severity: "Medium" },
+];
+
+const UNIVERSAL_CHECKLIST = [
+  "Gather current IEP, 504, or written requests", "Collect last 2 report cards and progress reports",
+  "Write top 3 concerns as impact statements", "Bring 2 examples per concern (work samples, emails)",
+  "Decide non-negotiable outcomes before the meeting", "Request meeting agenda in advance", "Bring notebook for notes",
+];
+const DOMAIN_CHECKLIST = {
+  READ: ["Bring reading samples, note decoding/spelling patterns", "Ask for reading subtest scores (not just composite)"],
+  WRIT: ["Bring 2-3 typical writing samples", "Note how long writing tasks take vs. peers"],
+  EF: ["Bring missed assignment patterns or planner screenshots", "Collect teacher emails about organization"],
+  BEH: ["Request discipline logs before the meeting", "Bring communication history"],
+  EMO: ["Document frequency and triggers of emotional episodes", "Note anxiety-driven avoidance patterns"],
+  SOC: ["Bring examples of social misunderstandings", "Note masking behaviors"],
+  SENS: ["Document sensory triggers", "Note impact on specials, lunch, transitions"],
+  SL: ["Bring examples of miscommunication", "Note language differences home vs. school"],
+  ATT: ["Bring attendance record with patterns", "Document morning struggles and avoidance"],
+  MATH: ["Bring math work showing error patterns", "Note calculation vs. problem-solving struggles"],
+};
+const UNIVERSAL_QUESTIONS = [
+  "What is the meeting type and what decisions are being made today?",
+  "What data are you using to determine needs and services?",
+  "What is the plan and timeline for follow-up steps?",
+  "Can we get copies of all documents referenced today?",
+];
+const DOMAIN_QUESTIONS = {
+  READ: ["What assessments were used for decoding, fluency, comprehension, and spelling?"],
+  WRIT: ["Was a writing-specific assessment completed?"],
+  MATH: ["Were math subskills separated (calculation, problem-solving, fluency)?"],
+  EF: ["What EF goals are proposed and how will progress be measured?"],
+  BEH: ["What data exists on triggers and function of behavior?"],
+  EMO: ["Were emotional regulation and anxiety assessed with validated measures?"],
+  SOC: ["How are pragmatic language and social communication needs being assessed?"],
+  SENS: ["What sensory needs are impacting access? Do we have OT data?"],
+  SL: ["Were pragmatic language skills assessed directly?"],
+  ATT: ["What is the root cause hypothesis for attendance issues?"],
+};
+const MEETING_TYPE_QUESTIONS = {
+  "Initial evaluation": ["What is the full scope of areas being evaluated?", "How will parent input be included?"],
+  "Eligibility": ["What criteria are being used for eligibility?", "If denied, what data would change that?"],
+  "Annual IEP": ["What progress data shows the plan is working?", "Which goals are continued or dropped — why?"],
+  "Reevaluation": ["What new data is being collected?", "Are there areas not previously assessed?"],
+  "Manifestation": ["Is a formal manifestation determination happening?", "What links the behavior to disability?"],
+};
+
+// Module 2 data
+const COVERAGE_MAP = {
+  "Executive Function": { domain: "Executive Function", tag: "EF_Missing" },
+  "Attention/Impulsivity": { domain: "Executive Function", tag: "EF_Missing" },
+  "Sensory": { domain: "Occupational Therapy", tag: "OT_Missing" },
+  "Motor/OT": { domain: "Occupational Therapy", tag: "OT_Missing" },
+  "Speech/Language": { domain: "Speech/Language", tag: "Pragmatics_Missing" },
+  "Social Communication": { domain: "Speech/Language", tag: "Pragmatics_Missing" },
+  "Behavior": { domain: "Behavior", tag: "FBA_Check" },
+  "Reading": { domain: "Academic", tag: "Reading_Subskills" },
+  "Writing": { domain: "Academic", tag: "Writing_Missing" },
+  "Math": { domain: "Academic", tag: "Math_Subskills" },
+  "Emotional Regulation": { domain: "Social/Emotional", tag: "SEL_Missing" },
+  "Attendance/Avoidance": { domain: "Adaptive Functioning", tag: "Adaptive_Missing" },
+};
+
+const EVAL_QUESTIONS = [
+  { q: "What direct executive function measures were administered?", tag: "EF_Missing", engine: "Coverage", severity: "High" },
+  { q: "Was adaptive functioning assessed?", tag: "Adaptive_Missing", engine: "Coverage", severity: "High" },
+  { q: "Were pragmatic language skills assessed directly?", tag: "Pragmatics_Missing", engine: "Coverage", severity: "High" },
+  { q: "Was a writing-specific assessment completed?", tag: "Writing_Missing", engine: "Coverage", severity: "High" },
+  { q: "Were reading subskills separated (decoding, fluency, comprehension)?", tag: "Reading_Subskills", engine: "Coverage", severity: "Medium" },
+  { q: "What OT measures were used for sensory processing and motor planning?", tag: "OT_Missing", engine: "Coverage", severity: "High" },
+  { q: "Were autism-specific rating scales administered across settings?", tag: "Autism_Scales_Check", engine: "Coverage", severity: "High" },
+  { q: "Was a functional behavior assessment conducted?", tag: "FBA_Check", engine: "Coverage", severity: "High" },
+  { q: "Were emotional regulation and anxiety assessed with validated measures?", tag: "SEL_Missing", engine: "Coverage", severity: "Medium" },
+  { q: "Where is functional classroom impact described in measurable terms?", tag: "Impact_Omission", engine: "Integrity", severity: "High" },
+  { q: "Were parent rating scales included and interpreted in findings?", tag: "Parent_Input_Required", engine: "Integrity", severity: "High" },
+  { q: "Are standardized scores and percentiles included for every area?", tag: "Scores_Missing", engine: "Integrity", severity: "High" },
+  { q: "What criteria determined eligibility, and where is the logic documented?", tag: "Eligibility_Logic", engine: "Integrity", severity: "High" },
+  { q: "Where are baselines documented for progress monitoring?", tag: "Baseline_Required", engine: "Integrity", severity: "High" },
+  { q: "Was observation conducted in typical instruction? Duration and setting?", tag: "Observation_Required", engine: "Integrity", severity: "Medium" },
+  { q: "What are the evaluation's limitations and plan to address them?", tag: "Limitations_Plan", engine: "Integrity", severity: "High" },
+  { q: "The report says 'within average range' — what is the functional impact despite that?", tag: "Average_Not_Enough", engine: "Minimization", severity: "High" },
+  { q: "How were relative weaknesses analyzed even if scores appear average?", tag: "Relative_Weakness", engine: "Minimization", severity: "High" },
+  { q: "How was masking/compensatory effort evaluated (fatigue, shutdown)?", tag: "Masking_Risk", engine: "Minimization", severity: "High" },
+  { q: "What evidence rules out disability impact before attributing to motivation?", tag: "Attribution_Risk", engine: "Minimization", severity: "High" },
+  { q: "Strengths are listed — how do they coexist with disability impact?", tag: "Strength_Dismissal", engine: "Minimization", severity: "High" },
+  { q: "The report says 'does not qualify' — what criteria were not met?", tag: "Does_Not_Qualify_Logic", engine: "Minimization", severity: "High" },
+  { q: "What would be the risk of not providing support?", tag: "Risk_of_No_Support", engine: "Minimization", severity: "High" },
+  { q: "How do findings translate into service minutes and recommendations?", tag: "Service_Translation", engine: "Minimization", severity: "High" },
+  { q: "If eligibility denied, what additional data would change that and by when?", tag: "Next_Data_To_Collect", engine: "Minimization", severity: "High" },
+];
+
+// Module 3: Rights Library + Leverage Triggers + Script Bank
+const RIGHTS_LIBRARY = [
+  { id: "pwn", name: "Prior Written Notice (PWN)", framework: "IDEA", summary: "If the school refuses or changes what you asked for, they must explain in writing why and what data they used.", parentAction: "Force decisions into writing. Reduce verbal ambiguity. Create a paper trail.", triggerTags: ["Eval denied","Services intensity","Eligibility","Goals-baselines","Implementation failure"] },
+  { id: "eval_right", name: "Right to Comprehensive Evaluation", framework: "IDEA", summary: "You can request evaluation in all suspected areas of need. The team must respond and follow timelines.", parentAction: "Request evaluation across domains. Challenge limited scope. Trigger consent and timeline obligations.", triggerTags: ["Eval denied","Eligibility"] },
+  { id: "iee", name: "Independent Educational Evaluation (IEE)", framework: "IDEA", summary: "If you disagree with the district evaluation, you can request an IEE at public expense.", parentAction: "Leverage independent testing to challenge weak or partial evaluations.", triggerTags: ["Eval denied","Eligibility"] },
+  { id: "records", name: "Right to Access Educational Records", framework: "IDEA", summary: "You can request and review your child's educational records.", parentAction: "Get data, logs, progress reports, raw scores, notes. Prepare counter evidence.", triggerTags: ["Implementation failure","Goals-baselines"] },
+  { id: "participate", name: "Right to Participate Meaningfully", framework: "IDEA", summary: "You are an equal team member and must be included in all decisions.", parentAction: "Slow down the meeting. Demand clarity. Request reconvening if needed.", triggerTags: ["Services intensity","Goals-baselines","Placement"] },
+  { id: "need_based", name: "Services Must Be Based on Need", framework: "IDEA", summary: "Services and supports must match needs and data, not staffing or convenience.", parentAction: "Push back on 'we don't do that' and 'not available' responses.", triggerTags: ["Services intensity","Implementation failure"] },
+  { id: "measurable_goals", name: "Goals Must Be Measurable With Baselines", framework: "IDEA", summary: "Goals must be measurable and start from a baseline so progress can be tracked.", parentAction: "Demand baselines and clear mastery criteria for every goal.", triggerTags: ["Goals-baselines"] },
+  { id: "lre", name: "Least Restrictive Environment (LRE)", framework: "IDEA", summary: "The school must educate in general education to the maximum appropriate extent with supports.", parentAction: "Challenge removal. Demand supports before restriction.", triggerTags: ["Placement"] },
+  { id: "discipline", name: "Discipline Protections / Manifestation", framework: "IDEA", summary: "Students with disabilities have protections when discipline intersects with disability.", parentAction: "Force manifestation analysis. Demand behavior supports.", triggerTags: ["Behavior discipline"] },
+  { id: "stay_put", name: "Stay-Put Protections", framework: "IDEA", summary: "If you formally dispute a change, the current placement may stay until resolved.", parentAction: "Prevent sudden changes while a dispute is active.", triggerTags: ["Placement"] },
+];
+
+const LEVERAGE_TRIGGERS = [
+  { id: "eval_denied", name: "Evaluation Denied Despite Need", tags: ["Eval denied"], strength: "High", score: 30, suggestedTone: "Firm", escalation: "PWN", rights: ["eval_right","pwn"], meetingTypes: ["Initial evaluation","Reevaluation"] },
+  { id: "timeline_delay", name: "Timeline Delayed / Process Drift", tags: ["Timeline"], strength: "High", score: 25, suggestedTone: "Neutral-Structured", escalation: "Document", rights: ["pwn"], meetingTypes: [] },
+  { id: "data_missing", name: "Data Missing / Vague Conclusions", tags: ["Data missing"], strength: "High", score: 25, suggestedTone: "Neutral-Structured", escalation: "Document", rights: ["records","pwn"], meetingTypes: [] },
+  { id: "services_denied", name: "Services Denied Due to Staffing/Policy", tags: ["Services intensity"], strength: "High", score: 30, suggestedTone: "Firm", escalation: "PWN", rights: ["need_based","pwn"], meetingTypes: [] },
+  { id: "implementation_fail", name: "Implementation Failure", tags: ["Implementation failure"], strength: "High", score: 25, suggestedTone: "Neutral-Structured", escalation: "Document", rights: ["participate","need_based"], meetingTypes: ["Annual IEP","Reevaluation"] },
+  { id: "goals_vague", name: "Goals Vague / No Baselines", tags: ["Goals-baselines"], strength: "Medium", score: 20, suggestedTone: "Neutral-Structured", escalation: "Document", rights: ["measurable_goals"], meetingTypes: ["Annual IEP","Reevaluation"] },
+  { id: "placement_restrict", name: "Placement Becoming Restrictive", tags: ["Placement"], strength: "High", score: 30, suggestedTone: "Firm", escalation: "Document", rights: ["lre","pwn"], meetingTypes: ["Annual IEP","Reevaluation"] },
+  { id: "eligibility_dispute", name: "Eligibility Dispute / Minimization", tags: ["Eligibility"], strength: "Medium", score: 20, suggestedTone: "Neutral-Structured", escalation: "Document", rights: ["need_based","eval_right"], meetingTypes: ["Initial evaluation","Reevaluation","Eligibility"] },
+  { id: "iee_triggered", name: "IEE Pathway (Eval Quality Dispute)", tags: ["Eval denied"], strength: "High", score: 30, suggestedTone: "Firm", escalation: "IEE", rights: ["iee"], meetingTypes: ["Reevaluation","Annual IEP"] },
+  { id: "behavior_access", name: "Behavior as Disability Expression", tags: ["Behavior discipline"], strength: "Medium", score: 20, suggestedTone: "Collaborative", escalation: "Document", rights: ["discipline","need_based"], meetingTypes: ["Annual IEP","Manifestation"] },
+  { id: "manifestation", name: "Manifestation Determination Required", tags: ["Behavior discipline"], strength: "High", score: 30, suggestedTone: "Neutral-Structured", escalation: "Complaint", rights: ["discipline"], meetingTypes: ["Manifestation"] },
+  { id: "pwn_missing", name: "PWN Not Provided After Denials", tags: ["Eval denied","Services intensity","Eligibility"], strength: "High", score: 25, suggestedTone: "Firm", escalation: "PWN", rights: ["pwn"], meetingTypes: [] },
+];
+
+const SCRIPT_BANK = {
+  "Collaborative": [
+    { situation: "Data missing", text: "I want to make sure we're aligned to data. Can you show me the specific measures and results supporting that decision?" },
+    { situation: "Services refused", text: "Can we reframe that as: what options will meet the documented need? If denied, please document why." },
+    { situation: "Need time", text: "I'm not comfortable finalizing today. Please send the draft and data; we'll reconvene after review." },
+    { situation: "Behavior framing", text: "I want to focus on function and access. What supports address the triggers and skill gaps driving this?" },
+    { situation: "Goal concerns", text: "Can we walk through the baseline data for this goal? I want to make sure we can actually track progress." },
+    { situation: "General opener", text: "I appreciate the team's work. I want to make sure the plan matches what we see at home — can we compare notes?" },
+  ],
+  "Neutral-Structured": [
+    { situation: "Data missing", text: "For clarity, please state the data source, date range, and measures used for that conclusion." },
+    { situation: "PWN request", text: "If the team is refusing this request, please issue Prior Written Notice documenting the refusal and data used." },
+    { situation: "Eval scope", text: "We are requesting evaluation in all suspected areas of need. Please document that request and the team's response." },
+    { situation: "Services specificity", text: "Please write the service minutes, provider role, and delivery model explicitly in the IEP." },
+    { situation: "Implementation", text: "We're agreeing only if implementation is trackable. Please add who is responsible and how it's monitored." },
+    { situation: "Timeline", text: "What is the district's timeline for responding to this request and completing the process?" },
+    { situation: "Baseline demand", text: "This goal needs a baseline and measurable criteria. Please add current performance level and mastery definition." },
+    { situation: "Record request", text: "Please provide copies of all data and draft documents referenced today before decisions are finalized." },
+  ],
+  "Firm": [
+    { situation: "Data missing", text: "I cannot agree without the underlying data. Please document it and provide it in writing." },
+    { situation: "PWN request", text: "We disagree with the refusal. Please provide Prior Written Notice including data relied on and options rejected." },
+    { situation: "IEE request", text: "We disagree with the district evaluation and request an IEE at public expense. Please respond in writing." },
+    { situation: "Services denied", text: "Services must be based on need and documented minutes — not availability or staffing." },
+    { situation: "Vague language", text: "We can't accept 'as needed' or 'as available.' If required for access, it must be written as guaranteed." },
+    { situation: "Placement pushback", text: "We do not agree to removal without data showing interventions tried with fidelity in general ed." },
+    { situation: "Escalation boundary", text: "If the district maintains this denial, we need written notice today so we can consider next steps." },
+    { situation: "Manifestation", text: "We're requesting formal manifestation determination procedures and documented supports to ensure FAPE." },
+  ],
+};
+
+const PUSHBACK_SCRIPTS = [
+  { trigger: "We don't see that at school", response: "Can you show me where that conclusion is supported in the evaluation data?", category: "Clarify" },
+  { trigger: "It's a behavior issue", response: "I'd like to clarify whether this reflects a skill deficit rather than compliance. What data supports that distinction?", category: "Reframe" },
+  { trigger: "Services aren't available", response: "The evaluation indicates need in this area. I'm not comfortable finalizing without addressing that data.", category: "Counter" },
+  { trigger: "Scores are in the average range", response: "What is the functional impact despite average composites? How were relative weaknesses analyzed?", category: "Counter" },
+  { trigger: "They're doing fine / passing", response: "What supports or scaffolds are currently making that possible? What happens if those are removed?", category: "Counter" },
+  { trigger: "We need to reduce services", response: "What data supports maintaining vs. reducing? Show me the regression analysis.", category: "Counter" },
+  { trigger: "You need to sign today", response: "I'm not refusing — I need time to review. I'll follow up in writing.", category: "Pause" },
+  { trigger: "The student is just unmotivated", response: "What evidence rules out disability impact before attributing to motivation? Where is the FBA data?", category: "Reframe" },
+  { trigger: "Goals don't need baselines", response: "Without a baseline we can't measure progress. Please add current performance data.", category: "Counter" },
+  { trigger: "Let me document that concern", response: "Please also include in the notes what data was used and what the team's response is.", category: "Clarify" },
+];
+
+// ============================================================
+// COMPUTE FUNCTIONS
+// ============================================================
+function computeModule1(data) {
+  const scores = {}; Object.keys(DOMAIN_LABELS).forEach(k => scores[k] = 0);
+  data.suspectedNeeds.forEach(n => { const m = NEED_DOMAIN_MAP[n]; if (m) Object.entries(m).forEach(([k,v]) => scores[k] += v); });
+  data.diagnosis.forEach(d => { const m = DX_DOMAIN_MAP[d]; if (m) Object.entries(m).forEach(([k,v]) => scores[k] += v); });
+  const ranked = Object.entries(scores).filter(([,v]) => v > 0).sort((a,b) => b[1] - a[1]);
+  const topDomains = ranked.slice(0, 3).map(([code, score]) => ({ code, label: DOMAIN_LABELS[code], score }));
+  const redFlags = RED_FLAG_RULES.filter(r => r.check(data));
+  let checklist = [...UNIVERSAL_CHECKLIST];
+  topDomains.forEach(d => { if (DOMAIN_CHECKLIST[d.code]) checklist.push(...DOMAIN_CHECKLIST[d.code]); });
+  let questions = [...UNIVERSAL_QUESTIONS];
+  topDomains.forEach(d => { if (DOMAIN_QUESTIONS[d.code]) questions.push(...DOMAIN_QUESTIONS[d.code]); });
+  if (MEETING_TYPE_QUESTIONS[data.meetingType]) questions.push(...MEETING_TYPE_QUESTIONS[data.meetingType]);
+  return { topDomains, allScores: ranked, redFlags, checklist, questions: questions.slice(0, 12) };
+}
+
+function computeModule2(mod1Data, evalData) {
+  const coverageGaps = [];
+  mod1Data.suspectedNeeds.forEach(need => {
+    const m = COVERAGE_MAP[need];
+    if (m && !evalData.domainsAssessed.includes(m.domain) && !coverageGaps.find(g => g.tag === m.tag))
+      coverageGaps.push({ tag: m.tag, text: `${m.domain} not assessed despite suspected ${need.toLowerCase()} needs.` });
+  });
+  if (mod1Data.diagnosis.includes("Autism")) {
+    if (!evalData.domainsAssessed.includes("Autism Rating Scales") && !coverageGaps.find(g => g.tag === "Autism_Scales_Check"))
+      coverageGaps.push({ tag: "Autism_Scales_Check", text: "Autism-specific rating scales not used despite autism diagnosis." });
+  }
+  const coverageLevel = coverageGaps.length === 0 ? "Low" : coverageGaps.length === 1 ? "Moderate" : "High";
+  let intS = 0; const intF = [];
+  if (!evalData.standardizedScores) { intS += 2; intF.push({ tag: "Scores_Missing", text: "Scores/percentiles missing.", severity: "High" }); }
+  if (!evalData.functionalImpact) { intS += 2; intF.push({ tag: "Impact_Omission", text: "Functional classroom impact not documented.", severity: "High" }); }
+  if (!evalData.parentInput) { intS += 1; intF.push({ tag: "Parent_Input_Required", text: "Parent input missing.", severity: "High" }); }
+  if (!evalData.teacherRatings) { intS += 1; intF.push({ tag: "Teacher_Data_Depth", text: "Teacher ratings missing.", severity: "Medium" }); }
+  if (!evalData.observationConducted) { intS += 1; intF.push({ tag: "Observation_Required", text: "No classroom observation.", severity: "Medium" }); }
+  if (evalData.observationConducted && !evalData.multipleSettings) { intS += 1; intF.push({ tag: "Multi_Setting", text: "Single setting observation.", severity: "Medium" }); }
+  const intStatus = intS === 0 ? "PASS" : intS <= 2 ? "WEAK" : "RED FLAG";
+  let minS = 0; const minF = [];
+  if (evalData.withinAverageUsed && evalData.parentAlignment !== "Yes") { minS += 2; minF.push({ tag: "Average_Not_Enough", text: "'Within average' minimizing functional impact.", severity: "High" }); minF.push({ tag: "Masking_Risk", text: "Masking/compensatory effort not addressed.", severity: "High" }); }
+  if (evalData.strengthsDismissal) { minS += 2; minF.push({ tag: "Strength_Dismissal", text: "Strengths used to deny support.", severity: "High" }); }
+  if (evalData.behaviorMotivation) { minS += 2; minF.push({ tag: "Attribution_Risk", text: "Behavior framed as motivation without ruling out disability.", severity: "High" }); }
+  if (evalData.doesNotQualify && evalData.parentAlignment !== "Yes") { minS += 2; minF.push({ tag: "Does_Not_Qualify_Logic", text: "Eligibility denial without alignment to functioning.", severity: "High" }); }
+  const minLevel = minS === 0 ? "Low" : minS <= 2 ? "Moderate" : "High";
+  const tags = new Set(); coverageGaps.forEach(g => tags.add(g.tag)); intF.forEach(f => tags.add(f.tag)); minF.forEach(f => tags.add(f.tag));
+  const selQ = EVAL_QUESTIONS.filter(eq => tags.has(eq.tag)).sort((a,b) => ({ High: 0, Medium: 1, Low: 2 }[a.severity] || 2) - ({ High: 0, Medium: 1, Low: 2 }[b.severity] || 2));
+  return { coverageGaps, coverageLevel, integrityFlags: intF, integrityScore: intS, integrityStatus: intStatus, minimizationFlags: minF, minimizationScore: minS, minimizationLevel: minLevel, questions: selQ.slice(0, 15) };
+}
+
+function computeModule3(mod1Data, mod2Results, mod3Data) {
+  const disputes = mod3Data.disputes;
+  const tone = mod3Data.tone;
+  const matchedTriggers = LEVERAGE_TRIGGERS.filter(t => {
+    const tagMatch = t.tags.some(tag => disputes.includes(tag));
+    const mtMatch = t.meetingTypes.length === 0 || t.meetingTypes.includes(mod1Data.meetingType);
+    return tagMatch && mtMatch;
+  }).sort((a, b) => b.score - a.score).slice(0, 6);
+  const rightIds = new Set(); matchedTriggers.forEach(t => t.rights.forEach(r => rightIds.add(r)));
+  const rights = RIGHTS_LIBRARY.filter(r => rightIds.has(r.id));
+  const scripts = SCRIPT_BANK[tone] || SCRIPT_BANK["Neutral-Structured"];
+  const escOrder = ["None","Document","PWN","IEE","Complaint","Mediation-Due Process"];
+  let maxEsc = "None";
+  matchedTriggers.forEach(t => { if (escOrder.indexOf(t.escalation) > escOrder.indexOf(maxEsc)) maxEsc = t.escalation; });
+  const pushbacks = PUSHBACK_SCRIPTS;
+  return { matchedTriggers, rights, scripts, pushbacks, escalationPath: maxEsc, tone };
+}
+
+// ============================================================
+// SHARED COMPONENTS
+// ============================================================
+function ChipSelect({ options, selected, onChange, columns = 3 }) {
+  const toggle = o => selected.includes(o) ? onChange(selected.filter(s => s !== o)) : onChange([...selected, o]);
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: "8px" }}>
+      {options.map(o => (
+        <button key={o} type="button" onClick={() => toggle(o)} style={{
+          padding: "10px 12px", borderRadius: "8px", border: `1.5px solid ${selected.includes(o) ? P.accent : P.border}`,
+          background: selected.includes(o) ? P.accentLight : P.surface, color: selected.includes(o) ? P.accent : P.text,
+          fontFamily: FONT, fontSize: "13px", fontWeight: selected.includes(o) ? 600 : 400, cursor: "pointer", textAlign: "left", lineHeight: 1.3,
+        }}>{o}</button>
+      ))}
+    </div>
+  );
+}
+function Checkbox({ label, checked, onChange }) {
+  return (
+    <label style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 0", cursor: "pointer", fontFamily: FONT, fontSize: "14px", color: P.text, lineHeight: 1.4 }}>
+      <span onClick={() => onChange(!checked)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "22px", height: "22px", minWidth: "22px", borderRadius: "5px", border: `1.5px solid ${checked ? P.accent : P.border}`, background: checked ? P.accent : P.surface, cursor: "pointer" }}>
+        {checked && <span style={{ color: "#fff", fontSize: "14px", fontWeight: 700 }}>&#10003;</span>}
+      </span>
+      <span onClick={() => onChange(!checked)}>{label}</span>
+    </label>
+  );
+}
+function Select({ label, value, onChange, options, placeholder }) {
+  return (
+    <div style={{ marginBottom: "20px" }}>
+      <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: P.text, marginBottom: "6px", fontFamily: FONT }}>{label}</label>
+      <select value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: `1.5px solid ${P.border}`, background: P.surface, fontFamily: FONT, fontSize: "14px", color: value ? P.text : P.textMuted }}>
+        <option value="">{placeholder || "Select..."}</option>
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </div>
+  );
+}
+function Input({ label, value, onChange, placeholder, sub }) {
+  return (
+    <div style={{ marginBottom: "20px" }}>
+      <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: P.text, marginBottom: sub ? "2px" : "6px", fontFamily: FONT }}>{label}</label>
+      {sub && <div style={{ fontSize: "12px", color: P.textMuted, marginBottom: "6px", fontFamily: FONT }}>{sub}</div>}
+      <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: `1.5px solid ${P.border}`, background: P.surface, fontFamily: FONT, fontSize: "14px", color: P.text, boxSizing: "border-box" }} />
+    </div>
+  );
+}
+function SL({ n, title, sub }) {
+  return (
+    <div style={{ marginBottom: "20px", marginTop: "32px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
+        <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "28px", height: "28px", borderRadius: "50%", background: P.accent, color: "#fff", fontSize: "13px", fontWeight: 700, fontFamily: FONT }}>{n}</span>
+        <span style={{ fontSize: "17px", fontWeight: 700, color: P.text, fontFamily: FONT }}>{title}</span>
+      </div>
+      {sub && <div style={{ fontSize: "13px", color: P.textMuted, marginLeft: "38px", fontFamily: FONT }}>{sub}</div>}
+    </div>
+  );
+}
+function Badge({ label, level }) {
+  const c = { "PASS": { bg: P.successLight, color: P.success, b: "#A7F3D0" }, "Low": { bg: P.successLight, color: P.success, b: "#A7F3D0" }, "WEAK": { bg: P.mediumBg, color: P.medium, b: "#FDE68A" }, "Moderate": { bg: P.mediumBg, color: P.medium, b: "#FDE68A" }, "RED FLAG": { bg: P.highBg, color: P.high, b: "#FECACA" }, "High": { bg: P.highBg, color: P.high, b: "#FECACA" } }[level] || { bg: P.successLight, color: P.success, b: "#A7F3D0" };
+  return (<div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 14px", borderRadius: "8px", background: c.bg, border: `1px solid ${c.b}` }}>
+    <span style={{ fontSize: "11px", fontWeight: 600, color: P.textMuted, fontFamily: FONT, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
+    <span style={{ fontSize: "14px", fontWeight: 700, color: c.color, fontFamily: FONT }}>{level}</span>
+  </div>);
+}
+function H2({ children, color }) {
+  return <h2 style={{ fontSize: "15px", fontWeight: 700, color: color || P.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px", marginTop: "28px", paddingBottom: "8px", borderBottom: `2px solid ${color || P.accent}`, fontFamily: FONT }}>{children}</h2>;
+}
+function Card({ children, bg, border }) {
+  return <div style={{ padding: "12px 16px", borderRadius: "10px", background: bg || P.surface, border: `1px solid ${border || P.border}`, marginBottom: "8px", fontSize: "13px", lineHeight: 1.5, fontFamily: FONT }}>{children}</div>;
+}
+function Btn({ children, onClick, primary, disabled, warm, small }) {
+  const bg = disabled ? P.border : warm ? P.accentWarm : primary ? P.accent : P.surface;
+  const color = disabled ? P.textMuted : (primary || warm) ? "#fff" : P.text;
+  return <button onClick={onClick} disabled={disabled} style={{ padding: small ? "8px 16px" : "14px 40px", borderRadius: "10px", border: primary || warm || disabled ? "none" : `1.5px solid ${P.border}`, background: bg, color, fontSize: small ? "12px" : "15px", fontWeight: 700, fontFamily: FONT, cursor: disabled ? "not-allowed" : "pointer", boxShadow: (primary || warm) && !disabled ? "0 2px 12px rgba(46,64,87,0.2)" : "none" }}>{children}</button>;
+}
+
+// ============================================================
+// GLOSSARY PANEL COMPONENT
+// ============================================================
+function GlossaryPanel({ open, onClose }) {
+  const [filter, setFilter] = useState("");
+  const query = (filter || "").toLowerCase();
+  const filtered = GLOSSARY.filter(g =>
+    g.term.toLowerCase().includes(query) || g.full.toLowerCase().includes(query) || g.def.toLowerCase().includes(query)
+  );
+  if (!open) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" }}>
+      <div onClick={onClose} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(2px)" }} />
+      <div style={{ position: "relative", width: "min(420px, 90vw)", height: "100%", background: P.bg, boxShadow: "-4px 0 24px rgba(0,0,0,0.12)", overflowY: "auto", fontFamily: FONT }}>
+        <div style={{ position: "sticky", top: 0, background: P.accent, padding: "20px", zIndex: 1 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#fff" }}>IEP Terms Glossary</h2>
+            <button onClick={onClose} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", width: "32px", height: "32px", borderRadius: "50%", fontSize: "16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+          </div>
+          <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.65)", marginBottom: "12px", lineHeight: 1.5 }}>Plain-language definitions written for parents, not lawyers.</div>
+          <input type="text" value={filter} onChange={e => setFilter(e.target.value)} placeholder="Search terms..." style={{ width: "100%", padding: "10px 12px", borderRadius: "8px", border: "none", background: "rgba(255,255,255,0.15)", color: "#fff", fontFamily: FONT, fontSize: "14px", boxSizing: "border-box", outline: "none" }} />
+        </div>
+        <div style={{ padding: "16px 20px" }}>
+          {filtered.length === 0 && <div style={{ color: P.textMuted, fontSize: "14px", padding: "20px 0", textAlign: "center" }}>No matching terms found.</div>}
+          {filtered.map((g, i) => (
+            <div key={g.term} style={{ padding: "16px 0", borderBottom: i < filtered.length - 1 ? `1px solid ${P.border}` : "none" }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginBottom: "4px" }}>
+                <span style={{ fontSize: "16px", fontWeight: 700, color: P.accent }}>{g.term}</span>
+                <span style={{ fontSize: "12px", color: P.textMuted }}>{g.full}</span>
+              </div>
+              <div style={{ fontSize: "14px", color: P.text, lineHeight: 1.6 }}>{g.def}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// HEADER WITH GLOSSARY BUTTON
+// ============================================================
+function AppHeader({ title, subtitle, step: s, onGlossary }) {
+  const steps = ["Welcome","Child Snapshot","Snapshot Results","Evaluation Input","Eval Analysis","Rights & Strategy","Strategy Results","Unlock Packet","Meeting Packet"];
+  return (
+    <div style={{ background: P.accent }}>
+      <div style={{ padding: "20px 24px 6px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <div style={{ fontSize: "11px", letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)", marginBottom: "5px" }}>IEP Decision Engine</div>
+          <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#fff", margin: 0, fontFamily: FONT }}>{title}</h1>
+          {subtitle && <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.65)", margin: "6px 0 0", lineHeight: 1.4, fontFamily: FONT }}>{subtitle}</p>}
+        </div>
+        {s > 0 && <button onClick={onGlossary} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", padding: "6px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: 600, fontFamily: FONT, cursor: "pointer", letterSpacing: "0.04em", textTransform: "uppercase", marginLeft: "8px", whiteSpace: "nowrap", marginTop: "4px" }}>Terms</button>}
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: "4px", padding: "8px 20px 10px" }}>
+        {steps.map((st, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+            <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: i <= s ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.2)" }} />
+            {i < steps.length - 1 && <div style={{ width: "12px", height: "1px", background: "rgba(255,255,255,0.12)" }} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function Wrap({ children }) { return <div style={{ maxWidth: "640px", margin: "0 auto", padding: "8px 20px 40px" }}>{children}</div>; }
+function Footer() { return <div style={{ marginTop: "48px", paddingTop: "16px", borderTop: `1px solid ${P.border}`, textAlign: "center", fontSize: "11px", color: P.textMuted, lineHeight: 1.5, fontFamily: FONT }}>Neurodivergent Uprising — IEP Decision Engine<br/>Confidential — For parent use in educational planning meetings. Not legal advice.</div>; }
+
+// ============================================================
+// MAIN APP
+// ============================================================
+function App() {
+  const [step, setStep] = useState(0);
+  const [glossaryOpen, setGlossaryOpen] = useState(false);
+  const [d1, setD1] = useState({ childName:"",age:"",grade:"",state:"",meetingType:"",meetingDate:"",diagnosis:[],suspectedNeeds:[],currentServices:[],concern1:"",concern2:"",concern3:"",urgentMarkers:[] });
+  const [r1, setR1] = useState(null);
+  const [d2, setD2] = useState({ evalType:"",domainsAssessed:[],standardizedScores:false,percentiles:false,narrativeSummary:false,functionalImpact:false,parentInput:false,teacherRatings:false,observationConducted:false,multipleSettings:false,withinAverageUsed:false,strengthsDismissal:false,doesNotQualify:false,behaviorMotivation:false,noRecommendations:false,parentAlignment:"" });
+  const [r2, setR2] = useState(null);
+  const [d3, setD3] = useState({ disputes: [], tone: "Neutral-Structured", timelineStatus: "Unknown", districtDenied: false, pwnIssued: "Unknown", goal1: "", goal2: "", goal3: "" });
+  const [r3, setR3] = useState(null);
+  const [packetEdits, setPacketEdits] = useState({ opening: "", agenda: "", scripts: "", email: "" });
+  const [packetInit, setPacketInit] = useState(false);
+  const [emailGate, setEmailGate] = useState({ email: "", firstName: "", submitting: false, error: "", done: false });
+
+  const u1 = (f,v) => setD1(p => ({...p,[f]:v}));
+  const u2 = (f,v) => setD2(p => ({...p,[f]:v}));
+  const u3 = (f,v) => setD3(p => ({...p,[f]:v}));
+  const go = (s) => { setStep(s); window.scrollTo({top:0,behavior:"smooth"}); };
+
+  const can1 = d1.childName && d1.suspectedNeeds.length > 0 && d1.concern1;
+  const can2 = d2.domainsAssessed.length > 0 && d2.parentAlignment;
+  const can3 = d3.disputes.length > 0;
+
+  // ---- Step 0: WELCOME SCREEN ----
+  if (step === 0) return (
+    <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
+      <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <div style={{ background: P.accent, padding: "40px 24px 32px", textAlign: "center" }}>
+        <div style={{ fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "12px" }}>Neurodivergent Uprising</div>
+        <h1 style={{ fontSize: "28px", fontWeight: 700, color: "#fff", margin: "0 0 8px", fontFamily: FONT, lineHeight: 1.2 }}>IEP Decision Engine</h1>
+        <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.5, fontFamily: FONT }}>Your meeting prep system. Built for the version of you<br/>that's doing this on three hours of sleep.</p>
+      </div>
+      <Wrap>
+        <div style={{ background: P.warmLight, border: "1px solid #F5D0C5", borderRadius: "12px", padding: "20px 22px", margin: "24px 0", lineHeight: 1.7, fontSize: "14px", color: P.text }}>
+          <div style={{ fontSize: "16px", fontWeight: 700, color: P.accentWarm, marginBottom: "10px" }}>A note before you begin</div>
+          <p style={{ margin: "0 0 12px" }}>If you're here, you've probably already spent hours reading documents you didn't fully understand, sitting in meetings where you felt outnumbered, or lying awake wondering if you asked the right questions.</p>
+          <p style={{ margin: "0 0 12px" }}>This tool was built for exactly that version of you. The one who's tired but still showing up. The one who knows something isn't right but can't always find the words for it in a room full of professionals.</p>
+          <p style={{ margin: "0 0 12px" }}>You don't need to be an expert. You just need to answer the questions honestly, and the system will do the rest — it'll surface your child's priority areas, flag risks the school may not mention, generate the right questions to ask, match you with your legal rights, and build you a complete meeting packet you can print and bring.</p>
+          <p style={{ margin: 0, fontWeight: 600, color: P.accentWarm }}>You are not asking for favors. You are confirming access your child is entitled to.</p>
+        </div>
+        <H2>How This Works</H2>
+        <div style={{ display: "grid", gap: "10px", marginBottom: "24px" }}>
+          {[
+            { n: "1", title: "Child Snapshot", time: "3-5 min", desc: "Tell us about your child, their needs, and your concerns. The engine identifies priority domains and red flags." },
+            { n: "2", title: "Evaluation Clarifier", time: "3-5 min", desc: "Answer questions about the school's evaluation. Three engines stress-test it for coverage gaps, data integrity issues, and minimization patterns." },
+            { n: "3", title: "Rights & Strategy", time: "2-3 min", desc: "Choose what's in dispute and your preferred tone. The system maps your leverage, surfaces your rights, and generates calibrated scripts." },
+            { n: "4", title: "Meeting Packet", time: "Review & edit", desc: "Everything compiles into a printable document: opening statement, agenda, scripts, goal audit, decision log, and follow-up email." },
+          ].map(m => (
+            <div key={m.n} style={{ display: "flex", gap: "14px", padding: "14px 16px", background: P.surface, borderRadius: "10px", border: `1px solid ${P.border}` }}>
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "32px", height: "32px", minWidth: "32px", borderRadius: "50%", background: P.accent, color: "#fff", fontSize: "14px", fontWeight: 700 }}>{m.n}</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "14px", color: P.text }}>{m.title} <span style={{ fontWeight: 400, fontSize: "12px", color: P.textMuted }}>({m.time})</span></div>
+                <div style={{ fontSize: "13px", color: P.textMuted, lineHeight: 1.5, marginTop: "4px" }}>{m.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ background: P.accentLight, border: `1px solid ${P.accent}`, borderRadius: "10px", padding: "16px 20px", marginBottom: "24px" }}>
+          <div style={{ fontSize: "13px", fontWeight: 700, color: P.accent, marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>What to have nearby (if you can)</div>
+          <div style={{ fontSize: "13px", color: P.text, lineHeight: 1.8 }}>Your child's current IEP or 504 plan &middot; Any recent evaluation report &middot; Progress reports or report cards &middot; Emails from teachers about concerns</div>
+          <div style={{ fontSize: "12px", color: P.textMuted, marginTop: "8px", fontStyle: "italic" }}>Don't have these? That's okay. You can still complete the tool with what you know.</div>
+        </div>
+        <div style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: "10px", padding: "16px 20px", marginBottom: "32px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 700, color: P.accent, textTransform: "uppercase", letterSpacing: "0.05em" }}>New to IEP language?</div>
+            <button onClick={() => setGlossaryOpen(true)} style={{ background: P.accentLight, border: `1px solid ${P.accent}`, color: P.accent, padding: "6px 14px", borderRadius: "6px", fontSize: "12px", fontWeight: 600, fontFamily: FONT, cursor: "pointer" }}>Open Full Glossary</button>
+          </div>
+          <div style={{ fontSize: "13px", color: P.textMuted, lineHeight: 1.6, marginBottom: "10px" }}>IEP meetings are full of acronyms designed to make you feel like you don't belong. You do belong.</div>
+          <div style={{ display: "grid", gap: "6px" }}>
+            {GLOSSARY.slice(0, 5).map(g => (
+              <div key={g.term} style={{ display: "flex", gap: "8px", fontSize: "13px", lineHeight: 1.4 }}>
+                <span style={{ fontWeight: 700, color: P.accent, minWidth: "42px" }}>{g.term}</span>
+                <span style={{ color: P.text }}>{g.def.split(".")[0]}.</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ textAlign: "center", marginBottom: "16px" }}><Btn primary onClick={() => go(1)}>Begin: Child Snapshot &rarr;</Btn></div>
+        <div style={{ textAlign: "center", fontSize: "12px", color: P.textMuted, lineHeight: 1.5, marginBottom: "32px" }}>Takes 10-15 minutes total. You can print results at every stage.<br/>Your data stays in your browser and is never stored or shared.</div>
+        <div style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: "12px", padding: "20px 22px", marginBottom: "16px" }}>
+          <div style={{ fontSize: "13px", fontWeight: 700, color: P.accent, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>About Neurodivergent Uprising</div>
+          <p style={{ fontSize: "14px", color: P.text, lineHeight: 1.7, margin: "0 0 12px" }}>Neurodivergent Uprising builds tools for families navigating systems that weren't designed for their kids. We're parents, advocates, and neurodivergent humans ourselves.</p>
+          <p style={{ fontSize: "14px", color: P.text, lineHeight: 1.7, margin: "0 0 16px" }}>This tool will get you far. But if your situation gets complicated, we offer 1:1 consults to help you strategize, prep, and hold your ground.</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
+            <a href="https://neurodivergentuprising.com" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "10px 24px", borderRadius: "8px", background: P.accent, color: "#fff", fontSize: "13px", fontWeight: 700, fontFamily: FONT, textDecoration: "none" }}>Visit neurodivergentuprising.com</a>
+            <a href="https://calendly.com/iepspeakup/45" target="_blank" rel="noopener noreferrer" style={{ fontSize: "13px", color: P.accent, fontWeight: 600, fontFamily: FONT, textDecoration: "underline" }}>Book a Consult</a>
+          </div>
+        </div>
+        <Footer />
+      </Wrap>
+    </div>
+  );
+
+  // ---- Step 1: Module 1 Intake ----
+  if (step === 1) return (
+    <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
+      <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <AppHeader title="Module 1: Child & Case Snapshot" subtitle="Tell us about your child to generate your advocacy roadmap." step={1} onGlossary={() => setGlossaryOpen(true)} />
+      <Wrap>
+        <SL n="1" title="Child Basics" />
+        <Input label="Child's First Name" value={d1.childName} onChange={v=>u1("childName",v)} placeholder="First name" />
+        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px" }}>
+          <Input label="Age" value={d1.age} onChange={v=>u1("age",v)} placeholder="e.g. 9" />
+          <Select label="Grade" value={d1.grade} onChange={v=>u1("grade",v)} options={["PK","K","1st","2nd","3rd","4th","5th","6th","7th","8th","9th","10th","11th","12th"]} />
+        </div>
+        <Select label="State" value={d1.state} onChange={v=>u1("state",v)} options={["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"]} />
+        <SL n="2" title="Meeting Context" />
+        <Select label="Meeting Type" value={d1.meetingType} onChange={v=>u1("meetingType",v)} options={["Initial evaluation","Eligibility","Annual IEP","Reevaluation","Manifestation","504 review","Other/Not sure"]} />
+        <Input label="Next Meeting Date" value={d1.meetingDate} onChange={v=>u1("meetingDate",v)} placeholder="e.g. March 15, 2026" />
+        <SL n="3" title="Known Context" sub="Select all that apply" />
+        <label style={{ display:"block",fontSize:"13px",fontWeight:600,color:P.text,marginBottom:"8px" }}>Primary Diagnosis</label>
+        <ChipSelect options={["ADHD","Autism","Dyslexia","Dysgraphia","Dyscalculia","Anxiety","Language Disorder","Trauma","ODD","Other","Not sure / None yet"]} selected={d1.diagnosis} onChange={v=>u1("diagnosis",v)} columns={3} />
+        <div style={{height:"16px"}} />
+        <label style={{ display:"block",fontSize:"13px",fontWeight:600,color:P.text,marginBottom:"8px" }}>Suspected Areas of Need</label>
+        <ChipSelect options={["Reading","Writing","Math","Attention/Impulsivity","Emotional Regulation","Behavior","Social Communication","Executive Function","Sensory","Speech/Language","Motor/OT","Attendance/Avoidance"]} selected={d1.suspectedNeeds} onChange={v=>u1("suspectedNeeds",v)} columns={3} />
+        <div style={{height:"16px"}} />
+        <label style={{ display:"block",fontSize:"13px",fontWeight:600,color:P.text,marginBottom:"8px" }}>Current Services</label>
+        <ChipSelect options={["IEP","504","RTI/MTSS","Speech","OT","Counseling","Behavior plan/BIP","Tutoring","None/Unknown"]} selected={d1.currentServices} onChange={v=>u1("currentServices",v)} columns={3} />
+        <SL n="4" title="Your Top Concerns" sub="In your own words" />
+        <Input label="Concern 1 (most important)" value={d1.concern1} onChange={v=>u1("concern1",v)} placeholder="e.g. Meltdowns during transitions" />
+        <Input label="Concern 2" value={d1.concern2} onChange={v=>u1("concern2",v)} placeholder="e.g. Homework takes hours" />
+        <Input label="Concern 3" value={d1.concern3} onChange={v=>u1("concern3",v)} placeholder="e.g. Refuses writing tasks" />
+        <SL n="5" title="Urgent Concerns" sub="Select any that apply" />
+        <ChipSelect options={["Suspension/Restraint","Seclusion","Calls home","Refusal/School avoidance","Threats of self-harm","Bullying","Police/SRO involvement","None"]} selected={d1.urgentMarkers} onChange={v=>u1("urgentMarkers",v)} columns={2} />
+        <div style={{ marginTop:"36px",textAlign:"center" }}><Btn primary disabled={!can1} onClick={() => { setR1(computeModule1(d1)); go(2); }}>Generate Snapshot &rarr;</Btn></div>
+        <Footer />
+      </Wrap>
+    </div>
+  );
+
+  // ---- Step 2: Module 1 Results ----
+  if (step === 2 && r1) return (
+    <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
+      <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <AppHeader title={`Snapshot: ${d1.childName}`} subtitle={[d1.grade && `Grade ${d1.grade}`, d1.meetingType, d1.meetingDate].filter(Boolean).join(" · ")} step={2} onGlossary={() => setGlossaryOpen(true)} />
+      <Wrap>
+        <div style={{ display:"flex",gap:"10px",justifyContent:"center",margin:"16px 0" }}><Btn onClick={()=>go(1)}>&larr; Edit</Btn><Btn onClick={()=>window.print()}>Print</Btn></div>
+        <H2>Priority Domains</H2>
+        {r1.topDomains.map((d,i) => <Card key={d.code} bg={i===0?P.accentLight:P.surface} border={i===0?P.accent:P.border}><div style={{display:"flex",alignItems:"center",gap:"12px"}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:"30px",height:"30px",borderRadius:"50%",background:i===0?P.accent:P.border,color:i===0?"#fff":P.text,fontSize:"13px",fontWeight:700}}>#{i+1}</span><div><strong>{d.label}</strong> <span style={{color:P.textMuted,fontSize:"12px"}}>Score: {d.score}</span></div></div></Card>)}
+        <H2 color={P.accentWarm}>Red Flags</H2>
+        {r1.redFlags.length===0 ? <Card bg={P.successLight} border="#A7F3D0"><strong style={{color:P.success}}>No red flags detected.</strong> Stay data-anchored.</Card> :
+          r1.redFlags.map(f => <Card key={f.id} bg={f.severity==="High"?P.highBg:P.mediumBg} border={f.severity==="High"?"#FECACA":"#FDE68A"}><span style={{fontSize:"11px",fontWeight:700,color:f.severity==="High"?P.high:P.medium,textTransform:"uppercase"}}>{f.severity}</span> <strong>{f.title}</strong><br/>{f.card}</Card>)}
+        <H2>Pre-Meeting Checklist</H2>
+        <div style={{background:P.surface,borderRadius:"10px",border:`1px solid ${P.border}`}}>{r1.checklist.map((item,i) => <div key={i} style={{display:"flex",gap:"10px",padding:"10px 14px",borderBottom:i<r1.checklist.length-1?`1px solid ${P.border}`:"none",fontSize:"13px",lineHeight:1.45}}><span style={{width:"16px",height:"16px",minWidth:"16px",borderRadius:"3px",border:`1.5px solid ${P.border}`,marginTop:"2px"}} />{item}</div>)}</div>
+        <H2>Questions to Bring</H2>
+        <div style={{background:P.surface,borderRadius:"10px",border:`1px solid ${P.border}`}}>{r1.questions.map((q,i) => <div key={i} style={{display:"flex",gap:"10px",padding:"11px 14px",borderBottom:i<r1.questions.length-1?`1px solid ${P.border}`:"none",fontSize:"13px",lineHeight:1.45}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",minWidth:"22px",height:"22px",borderRadius:"50%",background:P.accentLight,color:P.accent,fontSize:"11px",fontWeight:700}}>{i+1}</span><em>{q}</em></div>)}</div>
+        <div style={{marginTop:"32px",textAlign:"center"}}><Btn primary onClick={()=>go(3)}>Continue to Module 2: Evaluation Clarifier &rarr;</Btn></div>
+        <Footer />
+      </Wrap>
+    </div>
+  );
+
+  // ---- Step 3: Module 2 Intake ----
+  if (step === 3) return (
+    <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
+      <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <AppHeader title="Module 2: Evaluation Clarifier" subtitle={`Stress-test ${d1.childName}'s evaluation for gaps and risk.`} step={3} onGlossary={() => setGlossaryOpen(true)} />
+      <Wrap>
+        <Card bg={P.accentLight} border={P.accent}><strong>From Module 1:</strong> Suspected areas: {d1.suspectedNeeds.slice(0,4).join(", ")}{d1.diagnosis.length>0 && d1.diagnosis[0]!=="Not sure / None yet" ? `. Dx: ${d1.diagnosis.join(", ")}` : ""}</Card>
+        <SL n="1" title="Evaluation Type" />
+        <Select label="Type" value={d2.evalType} onChange={v=>u2("evalType",v)} options={["Initial","Reevaluation","IEE (Independent)"]} />
+        <SL n="2" title="Domains Assessed" sub="What was actually evaluated?" />
+        <ChipSelect options={["Cognitive","Academic","Executive Function","Speech/Language","Occupational Therapy","Social/Emotional","Behavior","Autism Rating Scales","Adaptive Functioning"]} selected={d2.domainsAssessed} onChange={v=>u2("domainsAssessed",v)} columns={2} />
+        <SL n="3" title="Data Quality" sub="Check what was included in the report" />
+        <div style={{background:P.surface,borderRadius:"10px",border:`1px solid ${P.border}`,padding:"4px 16px"}}>
+          <Checkbox label="Standardized scores provided" checked={d2.standardizedScores} onChange={v=>u2("standardizedScores",v)} />
+          <Checkbox label="Percentiles provided" checked={d2.percentiles} onChange={v=>u2("percentiles",v)} />
+          <Checkbox label="Narrative summary included" checked={d2.narrativeSummary} onChange={v=>u2("narrativeSummary",v)} />
+          <Checkbox label="Functional classroom impact described" checked={d2.functionalImpact} onChange={v=>u2("functionalImpact",v)} />
+          <Checkbox label="Parent input included" checked={d2.parentInput} onChange={v=>u2("parentInput",v)} />
+          <Checkbox label="Teacher ratings included" checked={d2.teacherRatings} onChange={v=>u2("teacherRatings",v)} />
+          <Checkbox label="Classroom observation conducted" checked={d2.observationConducted} onChange={v=>u2("observationConducted",v)} />
+          <Checkbox label="Multiple settings observed" checked={d2.multipleSettings} onChange={v=>u2("multipleSettings",v)} />
+        </div>
+        <SL n="4" title="Dismissal Indicators" sub="Did you see these patterns?" />
+        <div style={{background:P.surface,borderRadius:"10px",border:`1px solid ${P.border}`,padding:"4px 16px"}}>
+          <Checkbox label="'Within average range' used to justify no support" checked={d2.withinAverageUsed} onChange={v=>u2("withinAverageUsed",v)} />
+          <Checkbox label="Strengths used to deny support" checked={d2.strengthsDismissal} onChange={v=>u2("strengthsDismissal",v)} />
+          <Checkbox label="'Does not qualify' language used" checked={d2.doesNotQualify} onChange={v=>u2("doesNotQualify",v)} />
+          <Checkbox label="Behavior attributed to motivation" checked={d2.behaviorMotivation} onChange={v=>u2("behaviorMotivation",v)} />
+          <Checkbox label="No recommendations made" checked={d2.noRecommendations} onChange={v=>u2("noRecommendations",v)} />
+        </div>
+        <SL n="5" title="Alignment Check" />
+        <Select label="Does this report reflect your child's daily reality?" value={d2.parentAlignment} onChange={v=>u2("parentAlignment",v)} options={["Yes","Partially","No"]} />
+        <div style={{marginTop:"36px",textAlign:"center"}}><Btn warm disabled={!can2} onClick={()=>{setR2(computeModule2(d1,d2));go(4);}}>Run Evaluation Stress Test &rarr;</Btn></div>
+        <Footer />
+      </Wrap>
+    </div>
+  );
+
+  // ---- Step 4: Module 2 Results ----
+  if (step === 4 && r2) return (
+    <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
+      <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <AppHeader title={`Eval Stress Test: ${d1.childName}`} step={4} onGlossary={() => setGlossaryOpen(true)} />
+      <Wrap>
+        <div style={{display:"flex",gap:"10px",justifyContent:"center",margin:"16px 0"}}><Btn onClick={()=>go(3)}>&larr; Edit</Btn><Btn onClick={()=>window.print()}>Print</Btn></div>
+        <H2>Stress Test Summary</H2>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"10px",marginBottom:"20px"}}><Badge label="Integrity" level={r2.integrityStatus} /><Badge label="Minimization" level={r2.minimizationLevel} /><Badge label="Coverage" level={r2.coverageLevel} /></div>
+        {[...r2.coverageGaps.map(g=>({type:"COVERAGE",text:g.text,sev:"High"})),...r2.integrityFlags.map(f=>({type:"INTEGRITY",text:f.text,sev:f.severity})),...r2.minimizationFlags.map(f=>({type:"MINIMIZATION",text:f.text,sev:f.severity}))].map((f,i) =>
+          <Card key={i} bg={f.sev==="High"?P.highBg:P.mediumBg} border={f.sev==="High"?"#FECACA":"#FDE68A"}><span style={{fontSize:"11px",fontWeight:700,color:f.sev==="High"?P.high:P.medium,textTransform:"uppercase"}}>{f.type} </span>{f.text}</Card>
+        )}
+        {r2.coverageGaps.length===0&&r2.integrityFlags.length===0&&r2.minimizationFlags.length===0 && <Card bg={P.successLight} border="#A7F3D0"><strong style={{color:P.success}}>No significant flags.</strong> Evaluation appears methodologically sound.</Card>}
+        {r2.questions.length > 0 && <><H2>Strategic Questions</H2>
+          <div style={{background:P.surface,borderRadius:"10px",border:`1px solid ${P.border}`}}>{r2.questions.map((q,i) => <div key={i} style={{display:"flex",gap:"10px",padding:"11px 14px",borderBottom:i<r2.questions.length-1?`1px solid ${P.border}`:"none",fontSize:"13px",lineHeight:1.45}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",minWidth:"20px",height:"20px",borderRadius:"50%",background:q.engine==="Coverage"?P.highBg:q.engine==="Minimization"?P.mediumBg:P.accentLight,color:q.engine==="Coverage"?P.high:q.engine==="Minimization"?P.medium:P.accent,fontSize:"10px",fontWeight:700}}>{q.engine[0]}</span><em>{q.q}</em></div>)}</div>
+        </>}
+        <div style={{marginTop:"32px",textAlign:"center"}}><Btn primary onClick={()=>go(5)}>Continue to Module 3: Rights & Strategy &rarr;</Btn></div>
+        <Footer />
+      </Wrap>
+    </div>
+  );
+
+  // ---- Step 5: Module 3 Intake ----
+  if (step === 5) return (
+    <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
+      <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <AppHeader title="Module 3: Rights & Leverage" subtitle="Build your calibrated meeting strategy." step={5} onGlossary={() => setGlossaryOpen(true)} />
+      <Wrap>
+        <SL n="1" title="What's In Dispute?" sub="Select all areas of conflict or concern for this meeting" />
+        <ChipSelect options={["Eval denied","Eligibility","Services intensity","Goals-baselines","Implementation failure","Placement","Behavior discipline","Timeline"]} selected={d3.disputes} onChange={v=>u3("disputes",v)} columns={2} />
+        <SL n="2" title="Your Preferred Tone" sub="How do you want to approach this meeting?" />
+        <div style={{display:"flex",flexDirection:"column",gap:"8px"}}>
+          {["Collaborative","Neutral-Structured","Firm"].map(t => (
+            <button key={t} onClick={()=>u3("tone",t)} style={{padding:"14px 16px",borderRadius:"10px",border:`1.5px solid ${d3.tone===t?P.accent:P.border}`,background:d3.tone===t?P.accentLight:P.surface,textAlign:"left",cursor:"pointer",fontFamily:FONT}}>
+              <div style={{fontWeight:700,fontSize:"14px",color:d3.tone===t?P.accent:P.text}}>{t}</div>
+              <div style={{fontSize:"12px",color:P.textMuted,marginTop:"2px"}}>{t==="Collaborative"?"Partnership-first. Data-anchored but warm.":t==="Neutral-Structured"?"Clear, procedural, fact-based. No emotion.":"Direct. Rights-anchored. Sets boundaries."}</div>
+            </button>
+          ))}
+        </div>
+        <SL n="3" title="Meeting Goals" sub="What do you need to walk out with?" />
+        <Input label="Primary Goal" value={d3.goal1} onChange={v=>u3("goal1",v)} placeholder="e.g. Secure comprehensive EF evaluation" />
+        <Input label="Secondary Goal" value={d3.goal2} onChange={v=>u3("goal2",v)} placeholder="e.g. Increase direct instruction minutes" />
+        <Input label="Non-Negotiable" value={d3.goal3} onChange={v=>u3("goal3",v)} placeholder="e.g. Written data for all denied services" />
+        <div style={{marginTop:"36px",textAlign:"center"}}><Btn primary disabled={!can3} onClick={()=>{setR3(computeModule3(d1,r2,d3));go(6);}}>Generate Strategy Brief &rarr;</Btn></div>
+        <Footer />
+      </Wrap>
+    </div>
+  );
+
+  // ---- Step 6: Module 3 Results ----
+  if (step === 6 && r3) return (
+    <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
+      <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <AppHeader title={`Strategy Brief: ${d1.childName}`} step={6} onGlossary={() => setGlossaryOpen(true)} />
+      <Wrap>
+        <div style={{display:"flex",gap:"10px",justifyContent:"center",margin:"16px 0"}}><Btn onClick={()=>go(5)}>&larr; Edit</Btn><Btn onClick={()=>window.print()}>Print</Btn></div>
+        <H2>Leverage Map</H2>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"8px",marginBottom:"16px"}}><Badge label="Tone" level={r3.tone} /><Badge label="Escalation Path" level={r3.escalationPath} /></div>
+        {r3.matchedTriggers.map(t => <Card key={t.id} bg={t.strength==="High"?P.warmLight:P.surface} border={t.strength==="High"?"#F5D0C5":P.border}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><strong>{t.name}</strong><span style={{fontSize:"11px",fontWeight:700,color:t.strength==="High"?P.accentWarm:P.textMuted,textTransform:"uppercase"}}>{t.strength} leverage</span></div></Card>)}
+        {r3.matchedTriggers.length===0 && <Card bg={P.successLight} border="#A7F3D0"><strong style={{color:P.success}}>No high-leverage triggers matched.</strong></Card>}
+        <H2>Your Rights in This Meeting</H2>
+        {r3.rights.map(r => <Card key={r.id}><div style={{fontWeight:700,marginBottom:"4px"}}>{r.name} <span style={{fontSize:"11px",color:P.textMuted}}>({r.framework})</span></div><div style={{color:P.textMuted,fontSize:"13px",marginBottom:"4px"}}>{r.summary}</div><div style={{fontSize:"13px",color:P.accent,fontWeight:600}}>&rarr; {r.parentAction}</div></Card>)}
+        <H2>Tone-Calibrated Scripts ({r3.tone})</H2>
+        <div style={{background:P.surface,borderRadius:"10px",border:`1px solid ${P.border}`}}>{r3.scripts.map((s,i) => <div key={i} style={{padding:"12px 16px",borderBottom:i<r3.scripts.length-1?`1px solid ${P.border}`:"none"}}><div style={{fontSize:"11px",fontWeight:700,color:P.textMuted,textTransform:"uppercase",marginBottom:"4px"}}>{s.situation}</div><div style={{fontSize:"13px",fontStyle:"italic",lineHeight:1.5}}>"{s.text}"</div></div>)}</div>
+        <H2 color={P.accentWarm}>Pushback Scripts</H2>
+        <div style={{fontSize:"12px",color:P.textMuted,marginBottom:"10px",marginTop:"-6px"}}>When the school says X &rarr; you say Y</div>
+        {r3.pushbacks.map((p,i) => <Card key={i} bg={P.warmLight} border="#F5D0C5"><div style={{fontSize:"12px",fontWeight:700,color:P.accentWarm,marginBottom:"4px"}}>IF: "{p.trigger}"</div><div style={{fontSize:"13px",fontStyle:"italic",lineHeight:1.5}}>&rarr; "{p.response}"</div><div style={{fontSize:"11px",color:P.textMuted,marginTop:"4px"}}>Strategy: {p.category}</div></Card>)}
+        {(d3.goal1 || d3.goal2 || d3.goal3) && <><H2>Meeting Goals</H2><Card bg={P.accentLight} border={P.accent}>{d3.goal1 && <div style={{marginBottom:"4px"}}><strong>Primary:</strong> {d3.goal1}</div>}{d3.goal2 && <div style={{marginBottom:"4px"}}><strong>Secondary:</strong> {d3.goal2}</div>}{d3.goal3 && <div><strong>Non-Negotiable:</strong> {d3.goal3}</div>}</Card></>}
+
+        <div style={{marginTop:"32px",textAlign:"center"}}><Btn primary onClick={()=>{
+          const opening = `Thank you for meeting today regarding ${d1.childName}.\n\nMy primary concerns are:\n1. ${d1.concern1||"___"}\n2. ${d1.concern2||"___"}\n3. ${d1.concern3||"___"}\n\nI'd like to review present levels and evaluation data first, then confirm goal alignment, then discuss services and accommodations, and leave with clear next steps.${r1&&r1.redFlags.length>0?"\n\nI also need clarification on flagged areas before we finalize decisions.":""}`;
+          let agenda = "☐ Present Levels Accuracy\n☐ Evaluation Data Review\n☐ Goals (Baselines + Measurability)\n☐ Service Minutes\n☐ Accommodations / EF Supports\n☐ Documentation of Decisions";
+          if (r2&&r2.coverageGaps.length>0) agenda+="\n☐ Evaluation Coverage Gaps";
+          if (r2&&r2.minimizationFlags.length>0) agenda+="\n☐ Minimization Risk Discussion";
+          if (d3.disputes.includes("Behavior discipline")) agenda+="\n☐ Behavior / Manifestation Review";
+          const scriptText = r3.scripts.map(s=>`[${s.situation.toUpperCase()}]\n"${s.text}"`).join("\n\n");
+          const email = `Subject: Follow-Up from IEP Meeting for ${d1.childName}\n\nDear Team,\n\nThank you for meeting today${d1.meetingDate?` on ${d1.meetingDate}`:""} regarding ${d1.childName}.\n\nTo summarize my understanding:\n• We agreed to:\n• The team will revise:\n• The school will provide:\n\nIf this differs from your notes, please let me know.\n\nSincerely,\n[Your Name]`;
+          setPacketEdits({opening,agenda,scripts:scriptText,email});
+          setPacketInit(true);
+          go(8);
+        }}>Generate Meeting Packet &rarr;</Btn></div>
+        <Footer />
+      </Wrap>
+    </div>
+  );
+
+  // ---- Step 8: Email Gate ----
+  if (step === 8) return (
+    <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
+      <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <AppHeader title="Your Meeting Packet Is Ready" subtitle="Enter your details to unlock your personalized meeting packet." step={7} onGlossary={() => setGlossaryOpen(true)} />
+      <Wrap>
+        <div style={{ maxWidth: "440px", margin: "40px auto 0" }}>
+          <div style={{ background: P.warmLight, border: "1px solid #F5D0C5", borderRadius: "12px", padding: "24px", marginBottom: "24px", textAlign: "center" }}>
+            <div style={{ fontSize: "40px", marginBottom: "12px" }}>📋</div>
+            <div style={{ fontSize: "18px", fontWeight: 700, color: P.accentWarm, marginBottom: "8px" }}>Your packet includes:</div>
+            <div style={{ fontSize: "14px", color: P.text, lineHeight: 1.7 }}>
+              Opening statement &middot; Meeting agenda &middot; Advocacy scripts<br/>
+              Goal audit table &middot; Decision log &middot; Follow-up email template
+            </div>
+          </div>
+          <div style={{ background: P.surface, border: "1px solid " + P.border, borderRadius: "12px", padding: "28px" }}>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: P.text, marginBottom: "4px" }}>Unlock your meeting packet</div>
+            <div style={{ fontSize: "13px", color: P.textMuted, marginBottom: "20px", lineHeight: 1.5 }}>We'll send you a copy and keep you updated with new IEP tools and resources. No spam. Unsubscribe anytime.</div>
+            <div style={{ marginBottom: "14px" }}>
+              <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: P.text, marginBottom: "6px" }}>First Name</label>
+              <input type="text" value={emailGate.firstName} onChange={e => setEmailGate(g => ({...g, firstName: e.target.value}))} placeholder="Your first name" style={{ width: "100%", padding: "12px 14px", borderRadius: "8px", border: "1.5px solid " + P.border, background: P.bg, fontFamily: FONT, fontSize: "14px", color: P.text, boxSizing: "border-box" }} />
+            </div>
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: P.text, marginBottom: "6px" }}>Email Address</label>
+              <input type="email" value={emailGate.email} onChange={e => setEmailGate(g => ({...g, email: e.target.value, error: ""}))} placeholder="you@email.com" style={{ width: "100%", padding: "12px 14px", borderRadius: "8px", border: "1.5px solid " + (emailGate.error ? P.high : P.border), background: P.bg, fontFamily: FONT, fontSize: "14px", color: P.text, boxSizing: "border-box" }} />
+              {emailGate.error && <div style={{ color: P.high, fontSize: "12px", marginTop: "6px" }}>{emailGate.error}</div>}
+            </div>
+            <button onClick={async () => {
+                if (!emailGate.email || !emailGate.email.includes("@")) { setEmailGate(g => ({...g, error: "Please enter a valid email address."})); return; }
+                setEmailGate(g => ({...g, submitting: true, error: ""}));
+                try {
+                  const resp = await fetch("https://api.convertkit.com/v3/forms/9135692/subscribe", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ api_key: "5IStEe1bSBePuVK8zOuOkw", email: emailGate.email, first_name: emailGate.firstName,
+                      fields: { source: "iep-engine", lane: "parent", tool_used: "iep_decision_engine", child_grade: d1.grade || "", meeting_type: d1.meetingType || "", red_flags_count: r1 ? String(r1.redFlags.length) : "0", top_domain: r1 && r1.topDomains[0] ? r1.topDomains[0].label : "" }
+                    }),
+                  });
+                  const data = await resp.json();
+                  if (data.error) { setEmailGate(g => ({...g, submitting: false, error: data.message || "Something went wrong. Please try again."})); }
+                  else { setEmailGate(g => ({...g, submitting: false, done: true})); go(7); }
+                } catch (err) { setEmailGate(g => ({...g, submitting: false, error: "Connection error. Please try again."})); }
+              }} disabled={emailGate.submitting}
+              style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: emailGate.submitting ? P.border : P.accentWarm, color: emailGate.submitting ? P.textMuted : "#fff", fontSize: "15px", fontWeight: 700, fontFamily: FONT, cursor: emailGate.submitting ? "not-allowed" : "pointer", boxShadow: emailGate.submitting ? "none" : "0 2px 12px rgba(196,85,58,0.25)" }}>
+              {emailGate.submitting ? "Unlocking..." : "Unlock My Meeting Packet"}
+            </button>
+            <div style={{ fontSize: "11px", color: P.textMuted, textAlign: "center", marginTop: "12px", lineHeight: 1.5 }}>No spam. Your data stays with NDU. Unsubscribe anytime.</div>
+          </div>
+          <div style={{ textAlign: "center", marginTop: "16px" }}>
+            <button onClick={() => go(6)} style={{ background: "none", border: "none", color: P.textMuted, fontSize: "13px", fontFamily: FONT, cursor: "pointer", textDecoration: "underline" }}>&larr; Back to Strategy Results</button>
+          </div>
+        </div>
+        <Footer />
+      </Wrap>
+    </div>
+  );
+
+  // ---- Step 7: Module 4 - Meeting Packet ----
+  if (step === 7) return (
+    <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
+      <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
+      <AppHeader title="Module 4: Meeting Packet" subtitle="Review, edit, and print your complete advocacy packet." step={8} onGlossary={() => setGlossaryOpen(true)} />
+      <Wrap>
+        <div style={{display:"flex",gap:"10px",justifyContent:"center",margin:"16px 0"}}><Btn onClick={()=>go(8)}>&larr; Back</Btn><Btn primary onClick={()=>window.print()}>Print Meeting Packet</Btn></div>
+        <div style={{background:P.warmLight,border:"1px solid #F5D0C5",borderRadius:"10px",padding:"14px 16px",marginBottom:"24px",textAlign:"center"}}>
+          <div style={{fontSize:"13px",fontWeight:700,color:P.accentWarm}}>Before You Walk In</div>
+          <div style={{fontSize:"14px",color:P.text,marginTop:"6px",lineHeight:1.6}}>1. Slow your exhale longer than your inhale.<br/>2. Stay anchored to data, not emotion.<br/>3. You are confirming access — not requesting permission.</div>
+        </div>
+        <H2>Opening Statement</H2>
+        <textarea value={packetEdits.opening} onChange={e=>setPacketEdits(p=>({...p,opening:e.target.value}))} rows={8} style={{width:"100%",padding:"14px",borderRadius:"10px",border:`1px solid ${P.border}`,fontFamily:FONT,fontSize:"14px",lineHeight:1.6,resize:"vertical",boxSizing:"border-box",color:P.text}} />
+        <H2>Meeting Agenda</H2>
+        <textarea value={packetEdits.agenda} onChange={e=>setPacketEdits(p=>({...p,agenda:e.target.value}))} rows={8} style={{width:"100%",padding:"14px",borderRadius:"10px",border:`1px solid ${P.border}`,fontFamily:FONT,fontSize:"14px",lineHeight:1.6,resize:"vertical",boxSizing:"border-box",color:P.text}} />
+        <H2 color={P.accentWarm}>Advocacy Scripts</H2>
+        <textarea value={packetEdits.scripts} onChange={e=>setPacketEdits(p=>({...p,scripts:e.target.value}))} rows={12} style={{width:"100%",padding:"14px",borderRadius:"10px",border:`1px solid ${P.border}`,fontFamily:FONT,fontSize:"14px",lineHeight:1.6,resize:"vertical",boxSizing:"border-box",color:P.text}} />
+        <H2>Goal Audit Table</H2>
+        <div style={{background:P.surface,borderRadius:"10px",border:`1px solid ${P.border}`,overflow:"auto"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:"13px",fontFamily:FONT}}>
+            <thead><tr style={{background:P.accentLight}}>
+              <th style={{padding:"10px 12px",textAlign:"left",fontWeight:600,borderBottom:`1px solid ${P.border}`}}>Goal Area</th>
+              <th style={{padding:"10px 12px",textAlign:"center",fontWeight:600,borderBottom:`1px solid ${P.border}`}}>Baseline?</th>
+              <th style={{padding:"10px 12px",textAlign:"center",fontWeight:600,borderBottom:`1px solid ${P.border}`}}>Measurable?</th>
+              <th style={{padding:"10px 12px",textAlign:"center",fontWeight:600,borderBottom:`1px solid ${P.border}`}}>Decision</th>
+            </tr></thead>
+            <tbody>{[1,2,3,4].map(i => <tr key={i} style={{borderBottom:`1px solid ${P.border}`}}>
+              <td style={{padding:"12px"}}><div style={{width:"100%",borderBottom:`1px dashed ${P.border}`,minHeight:"18px"}} /></td>
+              <td style={{padding:"12px",textAlign:"center"}}>☐ Y ☐ N</td>
+              <td style={{padding:"12px",textAlign:"center"}}>☐ Y ☐ N</td>
+              <td style={{padding:"12px",textAlign:"center",fontSize:"11px"}}>☐ Accept ☐ Revise ☐ Reject</td>
+            </tr>)}</tbody>
+          </table>
+        </div>
+        <H2>Decision Log</H2>
+        <div style={{background:P.surface,borderRadius:"10px",border:`1px solid ${P.border}`,padding:"16px"}}>
+          <div style={{fontWeight:600,marginBottom:"8px",fontSize:"13px"}}>What was agreed to?</div>
+          <div style={{borderBottom:`1px dashed ${P.border}`,minHeight:"24px",marginBottom:"12px"}} />
+          <div style={{borderBottom:`1px dashed ${P.border}`,minHeight:"24px",marginBottom:"16px"}} />
+          <div style={{fontWeight:600,marginBottom:"8px",fontSize:"13px"}}>What requires revision?</div>
+          <div style={{borderBottom:`1px dashed ${P.border}`,minHeight:"24px",marginBottom:"12px"}} />
+          <div style={{borderBottom:`1px dashed ${P.border}`,minHeight:"24px",marginBottom:"16px"}} />
+          <div style={{fontWeight:600,marginBottom:"8px",fontSize:"13px"}}>Follow-up items:</div>
+          <div style={{borderBottom:`1px dashed ${P.border}`,minHeight:"24px",marginBottom:"12px"}} />
+          <div style={{fontWeight:600,marginBottom:"8px",fontSize:"13px"}}>Next deadline:</div>
+          <div style={{borderBottom:`1px dashed ${P.border}`,minHeight:"24px"}} />
+        </div>
+        <H2>Follow-Up Email</H2>
+        <textarea value={packetEdits.email} onChange={e=>setPacketEdits(p=>({...p,email:e.target.value}))} rows={10} style={{width:"100%",padding:"14px",borderRadius:"10px",border:`1px solid ${P.border}`,fontFamily:FONT,fontSize:"14px",lineHeight:1.6,resize:"vertical",boxSizing:"border-box",color:P.text}} />
+        <div style={{ background: `linear-gradient(135deg, ${P.warmLight}, #FFF8F5)`, border: "1.5px solid #F5D0C5", borderRadius: "12px", padding: "22px 22px", marginTop: "32px" }}>
+          <div style={{ fontSize: "16px", fontWeight: 700, color: P.accentWarm, marginBottom: "8px" }}>When Things Get Messy</div>
+          <p style={{ fontSize: "14px", color: P.text, lineHeight: 1.7, margin: "0 0 10px" }}>This packet gives you a strong foundation. But sometimes meetings don't go as planned — the school pushes back harder than expected, decisions get made without your input, or you leave feeling like nothing changed.</p>
+          <p style={{ fontSize: "14px", color: P.text, lineHeight: 1.7, margin: "0 0 16px" }}><strong>Neurodivergent Uprising offers 1:1 parent consults</strong> for IEP strategy, meeting prep, post-meeting recovery, and dispute navigation. We don't replace attorneys — we prepare you so you might not need one.</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
+            <a href="https://calendly.com/iepspeakup/45" target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", padding: "12px 28px", borderRadius: "8px", background: P.accentWarm, color: "#fff", fontSize: "14px", fontWeight: 700, fontFamily: FONT, textDecoration: "none", boxShadow: "0 2px 10px rgba(196,85,58,0.2)" }}>Book a Consult</a>
+            <a href="https://neurodivergentuprising.com" target="_blank" rel="noopener noreferrer" style={{ fontSize: "13px", color: P.accentWarm, fontWeight: 600, fontFamily: FONT, textDecoration: "underline" }}>neurodivergentuprising.com</a>
+          </div>
+        </div>
+        <div style={{marginTop:"32px",textAlign:"center"}}><Btn primary onClick={()=>window.print()}>Print Complete Meeting Packet</Btn></div>
+        <Footer />
+      </Wrap>
+    </div>
+  );
+
+  return null;
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
