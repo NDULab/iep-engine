@@ -20,11 +20,6 @@
 <script type="text/babel">
 const { useState, useRef } = React;
 
-// ============================================================
-// IEP DECISION ENGINE — COMPLETE (Welcome + Modules 1-4 + Glossary + Email Gate)
-// Neurodivergent Uprising
-// ============================================================
-
 const FONT = "'Source Serif 4', Georgia, serif";
 const P = {
   bg: "#FAFAF8", surface: "#FFFFFF", text: "#1A1A1A", textMuted: "#6B6B6B",
@@ -33,9 +28,6 @@ const P = {
   high: "#B91C1C", highBg: "#FEF2F2", medium: "#B45309", mediumBg: "#FFFBEB",
 };
 
-// ============================================================
-// GLOSSARY DATA
-// ============================================================
 const GLOSSARY = [
   { term: "IEP", full: "Individualized Education Program", def: "A legally binding document that spells out exactly what services, supports, goals, and accommodations the school must provide your child. It's not a suggestion — it's a contract." },
   { term: "504 Plan", full: "Section 504 Accommodation Plan", def: "A plan that gives your child accommodations (like extra time or preferential seating) but doesn't include specialized instruction or measurable goals. Less protection than an IEP, but easier to get." },
@@ -59,9 +51,6 @@ const GLOSSARY = [
   { term: "State Complaint", full: "State Complaint", def: "A written complaint to your state department of education alleging the school violated IDEA. The state must investigate and respond within 60 days. This is free and you don't need a lawyer." },
 ];
 
-// ============================================================
-// DATA: Domain Maps, Flags, Questions, Rights, Scripts
-// ============================================================
 const NEED_DOMAIN_MAP = {
   "Reading": { READ: 2 }, "Writing": { WRIT: 2 }, "Math": { MATH: 2 },
   "Attention/Impulsivity": { EF: 2, BEH: 1 }, "Emotional Regulation": { EMO: 2, BEH: 1 },
@@ -136,7 +125,6 @@ const MEETING_TYPE_QUESTIONS = {
   "Manifestation": ["Is a formal manifestation determination happening?", "What links the behavior to disability?"],
 };
 
-// Module 2 data
 const COVERAGE_MAP = {
   "Executive Function": { domain: "Executive Function", tag: "EF_Missing" },
   "Attention/Impulsivity": { domain: "Executive Function", tag: "EF_Missing" },
@@ -180,7 +168,6 @@ const EVAL_QUESTIONS = [
   { q: "If eligibility denied, what additional data would change that and by when?", tag: "Next_Data_To_Collect", engine: "Minimization", severity: "High" },
 ];
 
-// Module 3: Rights Library + Leverage Triggers + Script Bank
 const RIGHTS_LIBRARY = [
   { id: "pwn", name: "Prior Written Notice (PWN)", framework: "IDEA", summary: "If the school refuses or changes what you asked for, they must explain in writing why and what data they used.", parentAction: "Force decisions into writing. Reduce verbal ambiguity. Create a paper trail.", triggerTags: ["Eval denied","Services intensity","Eligibility","Goals-baselines","Implementation failure"] },
   { id: "eval_right", name: "Right to Comprehensive Evaluation", framework: "IDEA", summary: "You can request evaluation in all suspected areas of need. The team must respond and follow timelines.", parentAction: "Request evaluation across domains. Challenge limited scope. Trigger consent and timeline obligations.", triggerTags: ["Eval denied","Eligibility"] },
@@ -253,9 +240,6 @@ const PUSHBACK_SCRIPTS = [
   { trigger: "Let me document that concern", response: "Please also include in the notes what data was used and what the team's response is.", category: "Clarify" },
 ];
 
-// ============================================================
-// COMPUTE FUNCTIONS
-// ============================================================
 function computeModule1(data) {
   const scores = {}; Object.keys(DOMAIN_LABELS).forEach(k => scores[k] = 0);
   data.suspectedNeeds.forEach(n => { const m = NEED_DOMAIN_MAP[n]; if (m) Object.entries(m).forEach(([k,v]) => scores[k] += v); });
@@ -320,9 +304,6 @@ function computeModule3(mod1Data, mod2Results, mod3Data) {
   return { matchedTriggers, rights, scripts, pushbacks, escalationPath: maxEsc, tone };
 }
 
-// ============================================================
-// SHARED COMPONENTS
-// ============================================================
 function ChipSelect({ options, selected, onChange, columns = 3 }) {
   const toggle = o => selected.includes(o) ? onChange(selected.filter(s => s !== o)) : onChange([...selected, o]);
   return (
@@ -397,9 +378,6 @@ function Btn({ children, onClick, primary, disabled, warm, small }) {
   return <button onClick={onClick} disabled={disabled} style={{ padding: small ? "8px 16px" : "14px 40px", borderRadius: "10px", border: primary || warm || disabled ? "none" : `1.5px solid ${P.border}`, background: bg, color, fontSize: small ? "12px" : "15px", fontWeight: 700, fontFamily: FONT, cursor: disabled ? "not-allowed" : "pointer", boxShadow: (primary || warm) && !disabled ? "0 2px 12px rgba(46,64,87,0.2)" : "none" }}>{children}</button>;
 }
 
-// ============================================================
-// GLOSSARY PANEL COMPONENT
-// ============================================================
 function GlossaryPanel({ open, onClose }) {
   const [filter, setFilter] = useState("");
   const query = (filter || "").toLowerCase();
@@ -436,9 +414,6 @@ function GlossaryPanel({ open, onClose }) {
   );
 }
 
-// ============================================================
-// HEADER WITH GLOSSARY BUTTON
-// ============================================================
 function AppHeader({ title, subtitle, step: s, onGlossary }) {
   const steps = ["Welcome","Child Snapshot","Snapshot Results","Evaluation Input","Eval Analysis","Rights & Strategy","Strategy Results","Unlock Packet","Meeting Packet"];
   return (
@@ -465,9 +440,6 @@ function AppHeader({ title, subtitle, step: s, onGlossary }) {
 function Wrap({ children }) { return <div style={{ maxWidth: "640px", margin: "0 auto", padding: "8px 20px 40px" }}>{children}</div>; }
 function Footer() { return <div style={{ marginTop: "48px", paddingTop: "16px", borderTop: `1px solid ${P.border}`, textAlign: "center", fontSize: "11px", color: P.textMuted, lineHeight: 1.5, fontFamily: FONT }}>Neurodivergent Uprising — IEP Decision Engine<br/>Confidential — For parent use in educational planning meetings. Not legal advice.</div>; }
 
-// ============================================================
-// MAIN APP
-// ============================================================
 function App() {
   const [step, setStep] = useState(0);
   const [glossaryOpen, setGlossaryOpen] = useState(false);
@@ -479,6 +451,9 @@ function App() {
   const [r3, setR3] = useState(null);
   const [packetEdits, setPacketEdits] = useState({ opening: "", agenda: "", scripts: "", email: "" });
   const [packetInit, setPacketInit] = useState(false);
+  // ── EMAIL GATE STATE ──────────────────────────────────────────────────────────
+  // Gate is now positioned before Module 3 (step 5), not before Module 4.
+  // emailGate.done = true means the subscriber has already been captured this session.
   const [emailGate, setEmailGate] = useState({ email: "", firstName: "", submitting: false, error: "", done: false });
 
   const u1 = (f,v) => setD1(p => ({...p,[f]:v}));
@@ -490,7 +465,7 @@ function App() {
   const can2 = d2.domainsAssessed.length > 0 && d2.parentAlignment;
   const can3 = d3.disputes.length > 0;
 
-  // ---- Step 0: WELCOME SCREEN ----
+  // ---- Step 0: WELCOME ----
   if (step === 0) return (
     <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
       <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
@@ -512,7 +487,7 @@ function App() {
           {[
             { n: "1", title: "Child Snapshot", time: "3-5 min", desc: "Tell us about your child, their needs, and your concerns. The engine identifies priority domains and red flags." },
             { n: "2", title: "Evaluation Clarifier", time: "3-5 min", desc: "Answer questions about the school's evaluation. Three engines stress-test it for coverage gaps, data integrity issues, and minimization patterns." },
-            { n: "3", title: "Rights & Strategy", time: "2-3 min", desc: "Choose what's in dispute and your preferred tone. The system maps your leverage, surfaces your rights, and generates calibrated scripts." },
+            { n: "3", title: "Rights & Strategy", time: "2-3 min", desc: "Choose what's in dispute and your preferred tone. The system maps your leverage, surfaces your rights, and generates calibrated scripts. (Free with email)" },
             { n: "4", title: "Meeting Packet", time: "Review & edit", desc: "Everything compiles into a printable document: opening statement, agenda, scripts, goal audit, decision log, and follow-up email." },
           ].map(m => (
             <div key={m.n} style={{ display: "flex", gap: "14px", padding: "14px 16px", background: P.surface, borderRadius: "10px", border: `1px solid ${P.border}` }}>
@@ -658,6 +633,7 @@ function App() {
   );
 
   // ---- Step 4: Module 2 Results ----
+  // ── CHANGE 1: Continue button now routes to go(8) [email gate] instead of go(5) ──
   if (step === 4 && r2) return (
     <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
       <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
@@ -673,7 +649,8 @@ function App() {
         {r2.questions.length > 0 && <><H2>Strategic Questions</H2>
           <div style={{background:P.surface,borderRadius:"10px",border:`1px solid ${P.border}`}}>{r2.questions.map((q,i) => <div key={i} style={{display:"flex",gap:"10px",padding:"11px 14px",borderBottom:i<r2.questions.length-1?`1px solid ${P.border}`:"none",fontSize:"13px",lineHeight:1.45}}><span style={{display:"inline-flex",alignItems:"center",justifyContent:"center",minWidth:"20px",height:"20px",borderRadius:"50%",background:q.engine==="Coverage"?P.highBg:q.engine==="Minimization"?P.mediumBg:P.accentLight,color:q.engine==="Coverage"?P.high:q.engine==="Minimization"?P.medium:P.accent,fontSize:"10px",fontWeight:700}}>{q.engine[0]}</span><em>{q.q}</em></div>)}</div>
         </>}
-        <div style={{marginTop:"32px",textAlign:"center"}}><Btn primary onClick={()=>go(5)}>Continue to Module 3: Rights & Strategy &rarr;</Btn></div>
+        {/* ── CHANGE 1: was go(5), now routes to email gate go(8) ── */}
+        <div style={{marginTop:"32px",textAlign:"center"}}><Btn primary onClick={()=>go(8)}>Unlock Module 3: Rights & Strategy &rarr;</Btn></div>
         <Footer />
       </Wrap>
     </div>
@@ -707,6 +684,8 @@ function App() {
   );
 
   // ---- Step 6: Module 3 Results ----
+  // ── CHANGE 2: "Generate Meeting Packet" button now goes directly to go(7) ──
+  // Email was already captured at step 8 (the gate before Module 3).
   if (step === 6 && r3) return (
     <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
       <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
@@ -726,6 +705,7 @@ function App() {
         {r3.pushbacks.map((p,i) => <Card key={i} bg={P.warmLight} border="#F5D0C5"><div style={{fontSize:"12px",fontWeight:700,color:P.accentWarm,marginBottom:"4px"}}>IF: "{p.trigger}"</div><div style={{fontSize:"13px",fontStyle:"italic",lineHeight:1.5}}>&rarr; "{p.response}"</div><div style={{fontSize:"11px",color:P.textMuted,marginTop:"4px"}}>Strategy: {p.category}</div></Card>)}
         {(d3.goal1 || d3.goal2 || d3.goal3) && <><H2>Meeting Goals</H2><Card bg={P.accentLight} border={P.accent}>{d3.goal1 && <div style={{marginBottom:"4px"}}><strong>Primary:</strong> {d3.goal1}</div>}{d3.goal2 && <div style={{marginBottom:"4px"}}><strong>Secondary:</strong> {d3.goal2}</div>}{d3.goal3 && <div><strong>Non-Negotiable:</strong> {d3.goal3}</div>}</Card></>}
 
+        {/* ── CHANGE 2: was go(8), now goes directly to go(7) — email already captured ── */}
         <div style={{marginTop:"32px",textAlign:"center"}}><Btn primary onClick={()=>{
           const opening = `Thank you for meeting today regarding ${d1.childName}.\n\nMy primary concerns are:\n1. ${d1.concern1||"___"}\n2. ${d1.concern2||"___"}\n3. ${d1.concern3||"___"}\n\nI'd like to review present levels and evaluation data first, then confirm goal alignment, then discuss services and accommodations, and leave with clear next steps.${r1&&r1.redFlags.length>0?"\n\nI also need clarification on flagged areas before we finalize decisions.":""}`;
           let agenda = "☐ Present Levels Accuracy\n☐ Evaluation Data Review\n☐ Goals (Baselines + Measurability)\n☐ Service Minutes\n☐ Accommodations / EF Supports\n☐ Documentation of Decisions";
@@ -736,31 +716,38 @@ function App() {
           const email = `Subject: Follow-Up from IEP Meeting for ${d1.childName}\n\nDear Team,\n\nThank you for meeting today${d1.meetingDate?` on ${d1.meetingDate}`:""} regarding ${d1.childName}.\n\nTo summarize my understanding:\n• We agreed to:\n• The team will revise:\n• The school will provide:\n\nIf this differs from your notes, please let me know.\n\nSincerely,\n[Your Name]`;
           setPacketEdits({opening,agenda,scripts:scriptText,email});
           setPacketInit(true);
-          go(8);
+          go(7);
         }}>Generate Meeting Packet &rarr;</Btn></div>
         <Footer />
       </Wrap>
     </div>
   );
 
-  // ---- Step 8: Email Gate ----
+  // ---- Step 8: Email Gate ────────────────────────────────────────────────────
+  // ── CHANGES 3a–3h applied here ──
+  // Gate is now before Module 3 (step 5), not before Module 4.
+  // On success: go(5) [Module 3 intake]
+  // Back button: go(4) [Eval Results]
+  // Kit source tag: "iep-engine-freemium"
   if (step === 8) return (
     <div style={{ minHeight: "100vh", background: P.bg, fontFamily: FONT }}>
       <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
-      <AppHeader title="Your Meeting Packet Is Ready" subtitle="Enter your details to unlock your personalized meeting packet." step={7} onGlossary={() => setGlossaryOpen(true)} />
+      <AppHeader title="Unlock Module 3: Rights & Strategy" subtitle="Free with your email — takes 30 seconds." step={7} onGlossary={() => setGlossaryOpen(true)} />
       <Wrap>
         <div style={{ maxWidth: "440px", margin: "40px auto 0" }}>
           <div style={{ background: P.warmLight, border: "1px solid #F5D0C5", borderRadius: "12px", padding: "24px", marginBottom: "24px", textAlign: "center" }}>
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>📋</div>
-            <div style={{ fontSize: "18px", fontWeight: 700, color: P.accentWarm, marginBottom: "8px" }}>Your packet includes:</div>
+            <div style={{ fontSize: "40px", marginBottom: "12px" }}>⚖️</div>
+            <div style={{ fontSize: "18px", fontWeight: 700, color: P.accentWarm, marginBottom: "8px" }}>Free with your email:</div>
             <div style={{ fontSize: "14px", color: P.text, lineHeight: 1.7 }}>
-              Opening statement &middot; Meeting agenda &middot; Advocacy scripts<br/>
-              Goal audit table &middot; Decision log &middot; Follow-up email template
+              Module 3: Rights & Leverage &middot; Tone-calibrated scripts<br/>
+              Your legal rights mapped to your situation<br/>
+              Pushback responses for the meeting<br/>
+              <span style={{ fontSize: "12px", color: P.textMuted, marginTop: "6px", display: "block" }}>+ Meeting Packet unlocked after completing Module 3</span>
             </div>
           </div>
           <div style={{ background: P.surface, border: "1px solid " + P.border, borderRadius: "12px", padding: "28px" }}>
-            <div style={{ fontSize: "15px", fontWeight: 700, color: P.text, marginBottom: "4px" }}>Unlock your meeting packet</div>
-            <div style={{ fontSize: "13px", color: P.textMuted, marginBottom: "20px", lineHeight: 1.5 }}>We'll send you a copy and keep you updated with new IEP tools and resources. No spam. Unsubscribe anytime.</div>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: P.text, marginBottom: "4px" }}>Unlock Module 3: Rights & Strategy</div>
+            <div style={{ fontSize: "13px", color: P.textMuted, marginBottom: "20px", lineHeight: 1.5 }}>Get instant access plus updates on new IEP tools and resources from Neurodivergent Uprising. No spam. Unsubscribe anytime.</div>
             <div style={{ marginBottom: "14px" }}>
               <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: P.text, marginBottom: "6px" }}>First Name</label>
               <input type="text" value={emailGate.firstName} onChange={e => setEmailGate(g => ({...g, firstName: e.target.value}))} placeholder="Your first name" style={{ width: "100%", padding: "12px 14px", borderRadius: "8px", border: "1.5px solid " + P.border, background: P.bg, fontFamily: FONT, fontSize: "14px", color: P.text, boxSizing: "border-box" }} />
@@ -774,24 +761,45 @@ function App() {
                 if (!emailGate.email || !emailGate.email.includes("@")) { setEmailGate(g => ({...g, error: "Please enter a valid email address."})); return; }
                 setEmailGate(g => ({...g, submitting: true, error: ""}));
                 try {
-                  const resp = await fetch("https://api.convertkit.com/v3/forms/9135692/subscribe", {
+                  const resp = await fetch("https://api.convertkit.com/v3/forms/9214289/subscribe", {
                     method: "POST", headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ api_key: "5IStEe1bSBePuVK8zOuOkw", email: emailGate.email, first_name: emailGate.firstName,
-                      fields: { source: "iep-engine", lane: "parent", tool_used: "iep_decision_engine", child_grade: d1.grade || "", meeting_type: d1.meetingType || "", red_flags_count: r1 ? String(r1.redFlags.length) : "0", top_domain: r1 && r1.topDomains[0] ? r1.topDomains[0].label : "" }
+                    body: JSON.stringify({
+                      api_key: "5IStEe1bSBePuVK8zOuOkw",
+                      email: emailGate.email,
+                      first_name: emailGate.firstName,
+                      // ── CHANGE 3h: source tag now "iep-engine-freemium" ──
+                      // This distinguishes freemium subscribers from paid Squarespace buyers.
+                      fields: {
+                        source: "iep-engine-freemium",
+                        lane: "parent",
+                        tool_used: "iep_decision_engine",
+                        child_grade: d1.grade || "",
+                        meeting_type: d1.meetingType || "",
+                        red_flags_count: r1 ? String(r1.redFlags.length) : "0",
+                        top_domain: r1 && r1.topDomains[0] ? r1.topDomains[0].label : ""
+                      }
                     }),
                   });
                   const data = await resp.json();
-                  if (data.error) { setEmailGate(g => ({...g, submitting: false, error: data.message || "Something went wrong. Please try again."})); }
-                  else { setEmailGate(g => ({...g, submitting: false, done: true})); go(7); }
-                } catch (err) { setEmailGate(g => ({...g, submitting: false, error: "Connection error. Please try again."})); }
+                  if (data.error) {
+                    setEmailGate(g => ({...g, submitting: false, error: data.message || "Something went wrong. Please try again."}));
+                  } else {
+                    // ── CHANGE 3f: was go(7), now goes to go(5) [Module 3 intake] ──
+                    setEmailGate(g => ({...g, submitting: false, done: true}));
+                    go(5);
+                  }
+                } catch (err) {
+                  setEmailGate(g => ({...g, submitting: false, error: "Connection error. Please try again."}));
+                }
               }} disabled={emailGate.submitting}
               style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: emailGate.submitting ? P.border : P.accentWarm, color: emailGate.submitting ? P.textMuted : "#fff", fontSize: "15px", fontWeight: 700, fontFamily: FONT, cursor: emailGate.submitting ? "not-allowed" : "pointer", boxShadow: emailGate.submitting ? "none" : "0 2px 12px rgba(196,85,58,0.25)" }}>
-              {emailGate.submitting ? "Unlocking..." : "Unlock My Meeting Packet"}
+              {emailGate.submitting ? "Unlocking..." : "Unlock Rights & Strategy — Free"}
             </button>
             <div style={{ fontSize: "11px", color: P.textMuted, textAlign: "center", marginTop: "12px", lineHeight: 1.5 }}>No spam. Your data stays with NDU. Unsubscribe anytime.</div>
           </div>
           <div style={{ textAlign: "center", marginTop: "16px" }}>
-            <button onClick={() => go(6)} style={{ background: "none", border: "none", color: P.textMuted, fontSize: "13px", fontFamily: FONT, cursor: "pointer", textDecoration: "underline" }}>&larr; Back to Strategy Results</button>
+            {/* ── CHANGE 3g: back button was go(6), now goes to go(4) [Eval Results] ── */}
+            <button onClick={() => go(4)} style={{ background: "none", border: "none", color: P.textMuted, fontSize: "13px", fontFamily: FONT, cursor: "pointer", textDecoration: "underline" }}>&larr; Back to Evaluation Results</button>
           </div>
         </div>
         <Footer />
@@ -805,7 +813,7 @@ function App() {
       <GlossaryPanel open={glossaryOpen} onClose={() => setGlossaryOpen(false)} />
       <AppHeader title="Module 4: Meeting Packet" subtitle="Review, edit, and print your complete advocacy packet." step={8} onGlossary={() => setGlossaryOpen(true)} />
       <Wrap>
-        <div style={{display:"flex",gap:"10px",justifyContent:"center",margin:"16px 0"}}><Btn onClick={()=>go(8)}>&larr; Back</Btn><Btn primary onClick={()=>window.print()}>Print Meeting Packet</Btn></div>
+        <div style={{display:"flex",gap:"10px",justifyContent:"center",margin:"16px 0"}}><Btn onClick={()=>go(6)}>&larr; Back</Btn><Btn primary onClick={()=>window.print()}>Print Meeting Packet</Btn></div>
         <div style={{background:P.warmLight,border:"1px solid #F5D0C5",borderRadius:"10px",padding:"14px 16px",marginBottom:"24px",textAlign:"center"}}>
           <div style={{fontSize:"13px",fontWeight:700,color:P.accentWarm}}>Before You Walk In</div>
           <div style={{fontSize:"14px",color:P.text,marginTop:"6px",lineHeight:1.6}}>1. Slow your exhale longer than your inhale.<br/>2. Stay anchored to data, not emotion.<br/>3. You are confirming access — not requesting permission.</div>
